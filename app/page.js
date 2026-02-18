@@ -40,9 +40,9 @@ export default function Home() {
       />
 
       {/* Items Grid */}
-      <main className="mx-auto max-w-6xl px-4 py-4 md:py-6">
+      <main className="mx-auto max-w-7xl px-4 py-4 md:py-6">
         {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4 lg:grid-cols-4">
             {filteredItems.map((item) => (
               <PriceCard key={item.id} item={item} />
             ))}

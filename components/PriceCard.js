@@ -16,7 +16,7 @@ export default function PriceCard({ item }) {
   const changeSymbol = isIncrease ? "▲" : isDecrease ? "▼" : "•";
 
   return (
-    <article className="group relative h-44 overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 transition-all duration-300 md:h-48 md:hover:-translate-y-1 md:hover:shadow-xl dark:ring-white/10">
+    <article className="group relative mx-auto w-full max-w-sm aspect-5/4 overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 transition-all duration-300 md:mx-0 md:max-w-none md:aspect-square md:hover:-translate-y-1 md:hover:scale-[1.01] md:hover:shadow-xl dark:ring-white/10">
       <Image
         src={item.image || "/globe.svg"}
         alt={item.name}
@@ -38,15 +38,15 @@ export default function PriceCard({ item }) {
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-4">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-white/80">
+      <div className="absolute inset-x-0 bottom-0 p-3.5 md:p-4">
+        <p className="text-[14px] font-medium uppercase tracking-wide text-white/80">
           {item.category}
         </p>
         <div className="mt-1 flex items-end justify-between gap-2">
-          <h3 className="text-base font-semibold leading-tight text-white">
+          <h3 className="text-2xl font-semibold leading-tight text-white md:text-base">
             {item.name}
           </h3>
-          <p className="shrink-0 text-lg font-bold tracking-tight text-white">
+          <p className="shrink-0 text-3xl font-bold tracking-tight text-white md:text-lg">
             {typeof item.price === "number"
               ? item.price.toFixed(2)
               : item.price}
