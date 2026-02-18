@@ -18,7 +18,7 @@ export default function TopNav({
   const [darkMode, setDarkMode] = useState(
     () =>
       typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark")
+      document.documentElement.classList.contains("dark"),
   );
 
   const toggleDarkMode = () => {
@@ -74,7 +74,6 @@ export default function TopNav({
             toggleDarkMode={toggleDarkMode}
           />
         </div>
-
       </div>
     </header>
   );

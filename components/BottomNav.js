@@ -24,9 +24,7 @@ function NavItem({ icon, label, active }) {
   return (
     <button
       className={`flex min-w-0 flex-1 flex-col items-center rounded-lg p-1 ${
-        active
-          ? "text-primary"
-          : "text-slate-500 dark:text-slate-400"
+        active ? "text-primary" : "text-slate-500 dark:text-slate-400"
       }`}
     >
       {icon}
