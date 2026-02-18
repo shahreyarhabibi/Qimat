@@ -1,17 +1,19 @@
 ﻿import Image from "next/image";
 
 export default function PriceCard({ item }) {
-  const isPositive = item.change > 0;
-  const changeText = isPositive
-    ? "text-emerald-100"
-    : item.change < 0
-      ? "text-rose-100"
+  const isIncrease = item.change > 0;
+  const isDecrease = item.change < 0;
+  const changeText = isIncrease
+    ? "text-rose-100"
+    : isDecrease
+      ? "text-emerald-100"
       : "text-slate-100";
-  const changeBg = isPositive
-    ? "bg-emerald-600/70"
-    : item.change < 0
-      ? "bg-rose-600/70"
-      : "bg-slate-700/70";
+  const changeBg = isIncrease
+    ? "bg-rose-600/75"
+    : isDecrease
+      ? "bg-emerald-600/75"
+      : "bg-slate-700/75";
+  const changeSymbol = isIncrease ? "▲" : isDecrease ? "▼" : "•";
 
   return (
     <article className="group relative h-44 overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 transition-all duration-300 md:h-48 md:hover:-translate-y-1 md:hover:shadow-xl dark:ring-white/10">
@@ -28,10 +30,10 @@ export default function PriceCard({ item }) {
       {item.change !== undefined && (
         <div className="absolute right-3 top-3">
           <span
-            className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${changeText} ${changeBg} backdrop-blur`}
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${changeText} ${changeBg} backdrop-blur`}
           >
-            {isPositive ? "+" : item.change < 0 ? "-" : ""}
-            {Math.abs(item.change).toFixed(2)}
+            <span className="text-[10px] leading-none">{changeSymbol}</span>
+            <span>{Math.abs(item.change).toFixed(2)}%</span>
           </span>
         </div>
       )}
