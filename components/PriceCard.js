@@ -1,56 +1,102 @@
 ﻿import Image from "next/image";
+import { MapPinIcon } from "@heroicons/react/24/outline";
 
 export default function PriceCard({ item }) {
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
-  const changeText = isIncrease
-    ? "text-rose-100"
-    : isDecrease
-      ? "text-emerald-100"
-      : "text-slate-100";
-  const changeBg = isIncrease
-    ? "bg-rose-600/75"
-    : isDecrease
-      ? "bg-emerald-600/75"
-      : "bg-slate-700/75";
-  const changeSymbol = isIncrease ? "▲" : isDecrease ? "▼" : "•";
+
+  const formatPrice = (price) => {
+    if (price >= 1000) {
+      return price.toLocaleString();
+    }
+    return price % 1 === 0 ? price : price.toFixed(2);
+  };
+
+  const formatChange = (change) => {
+    const absChange = Math.abs(change);
+    if (absChange >= 1000) {
+      return absChange.toLocaleString();
+    }
+    return absChange % 1 === 0 ? absChange : absChange.toFixed(2);
+  };
 
   return (
-    <article className="group relative mx-auto w-full max-w-sm aspect-5/4 overflow-hidden rounded-2xl shadow-md ring-1 ring-black/5 transition-all duration-300 md:mx-0 md:max-w-none md:aspect-square md:hover:-translate-y-1 md:hover:scale-[1.01] md:hover:shadow-xl dark:ring-white/10">
-      <Image
-        src={item.image || "/globe.svg"}
-        alt={item.name}
-        fill
-        sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-        className="object-cover transition-transform duration-500 md:group-hover:scale-105"
-      />
+    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-all duration-300 hover:shadow-lg hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80">
+      {/* Image Container */}
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+        <Image
+          src={item.image || "/placeholder.jpg"}
+          alt={item.name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-105"
+        />
 
-      <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
-
-      {item.change !== undefined && (
-        <div className="absolute right-3 top-3">
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${changeText} ${changeBg} backdrop-blur`}
-          >
-            <span className="text-[10px] leading-none">{changeSymbol}</span>
-            <span>{Math.abs(item.change).toFixed(2)}%</span>
+        {/* Category Badge */}
+        <div className="absolute left-2 top-2">
+          <span className="inline-flex items-center rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-300">
+            {item.category}
           </span>
         </div>
-      )}
 
-      <div className="absolute inset-x-0 bottom-0 p-3.5 md:p-4">
-        <p className="text-[14px] font-medium uppercase tracking-wide text-white/80">
-          {item.category}
-        </p>
-        <div className="mt-1 flex items-end justify-between gap-2">
-          <h3 className="text-2xl font-semibold leading-tight text-white md:text-base">
+        {/* Price Change Badge */}
+        {item.change !== 0 && (
+          <div className="absolute right-2 top-2">
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold backdrop-blur-sm ${
+                isIncrease
+                  ? "bg-rose-500/90 text-white"
+                  : "bg-emerald-500/90 text-white"
+              }`}
+            >
+              <span className="text-[10px]">{isIncrease ? "▲" : "▼"}</span>
+              {formatChange(item.change)} AFN
+            </span>
+          </div>
+        )}
+
+        {/* No Change Badge */}
+        {item.change === 0 && (
+          <div className="absolute right-2 top-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+              <span className="text-[10px]">•</span>
+              Stable
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-3 md:p-4">
+        {/* Product Name & Unit */}
+        <div className="flex  items-center justify-between">
+          <div className="mb-2">
+          <h3 className="text-sm font-semibold leading-tight text-slate-900 dark:text-white md:text-base">
             {item.name}
           </h3>
-          <p className="shrink-0 text-3xl font-bold tracking-tight text-white md:text-lg">
-            {typeof item.price === "number"
-              ? item.price.toFixed(2)
-              : item.price}
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {item.unit}
           </p>
+        </div>
+
+        {/* Price */}
+        <div className="mb-3 flex items-baseline gap-1">
+          <span className="text-lg font-bold text-slate-900 dark:text-white md:text-2xl">
+            {formatPrice(item.price)}
+          </span>
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            AFN
+          </span>
+        </div>
+        </div>
+        
+
+        {/* Source */}
+        <div className="mt-auto flex items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-700">
+          <MapPinIcon className="h-3.5 w-3.5 text-slate-400" />
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
+            {item.source?.shortName || item.source?.name || "Unknown"}
+          </span>
         </div>
       </div>
     </article>

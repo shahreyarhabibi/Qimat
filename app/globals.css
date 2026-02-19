@@ -159,21 +159,36 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
+/* Ticker Animation - Seamless Infinite Loop */
+.ticker-wrapper {
+  overflow: hidden;
+  width: 100%;
+}
 
-/* Ticker Animation */
+.ticker-track {
+  display: flex;
+  width: fit-content;
+  will-change: transform;
+}
+
 @keyframes ticker {
   0% {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-50%);
+    transform: translateX(-25%);
   }
 }
 
-.animate-ticker {
-  animation: ticker 30s linear infinite;
+.ticker-track {
+  animation: ticker 20s linear infinite;
 }
 
-.animate-ticker:hover {
+.ticker-track:hover {
   animation-play-state: paused;
+}
+
+/* Ensure smooth animation */
+.ticker-set {
+  flex-shrink: 0;
 }

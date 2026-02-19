@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -9,7 +9,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { items } from "@/lib/data";
 
-const TICKER_ITEMS = ["USD to AFN", "Petrol", "Flour (1kg)", "Gold (1g)"];
+// Get important items by ID from data.js
+const TICKER_ITEM_IDS = [15, 21, 4, 26, 9, 16]; // USD, Petrol, Flour, Gold, iPhone, EUR
 
 export default function TopNav({
   searchQuery,
@@ -33,35 +34,14 @@ export default function TopNav({
     setDarkMode(!darkMode);
   };
 
-  const tickerData = items.filter((item) =>
-    TICKER_ITEMS.some((name) =>
-      item.name.toLowerCase().includes(name.toLowerCase())
-    )
-  );
-
-  const displayTicker =
-    tickerData.length > 0
-      ? tickerData
-      : [
-          { id: "t1", name: "USD/AFN", price: 70.5, change: 0.25 },
-          { id: "t2", name: "Petrol", price: 65.0, change: -0.5 },
-          { id: "t3", name: "Flour", price: 2850, change: 1.2 },
-          { id: "t4", name: "Gold", price: 5850, change: 0.8 },
-        ];
+  // Get ticker items from data.js by ID
+  const tickerData = items.filter((item) => TICKER_ITEM_IDS.includes(item.id));
 
   return (
     <header className="sticky top-0 z-30">
       {/* Ticker Bar */}
-      <div className="w-full bg-slate-900 dark:bg-slate-950">
-        <div className="relative overflow-hidden">
-          <div className="flex animate-ticker items-center gap-8 py-2 px-4 whitespace-nowrap">
-            {[...displayTicker, ...displayTicker, ...displayTicker].map(
-              (item, index) => (
-                <TickerItem key={`${item.id}-${index}`} item={item} />
-              )
-            )}
-          </div>
-        </div>
+      <div className="w-full bg-slate-900 dark:bg-slate-950 overflow-hidden">
+        <TickerStrip items={tickerData} />
       </div>
 
       {/* Main Navbar */}
@@ -101,29 +81,94 @@ export default function TopNav({
   );
 }
 
+function TickerStrip({ items }) {
+  const tickerRef = useRef(null);
+  const [contentWidth, setContentWidth] = useState(0);
+
+  useEffect(() => {
+    if (tickerRef.current) {
+      // Get the width of one set of items
+      const firstSet = tickerRef.current.querySelector('.ticker-set');
+      if (firstSet) {
+        setContentWidth(firstSet.offsetWidth);
+      }
+    }
+  }, [items]);
+
+  // Create enough copies to ensure seamless loop
+  const renderTickerContent = () => (
+    <div className="ticker-set flex items-center gap-8 px-4">
+      {items.map((item) => (
+        <TickerItem key={item.id} item={item} />
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="ticker-wrapper relative py-2">
+      <div
+        ref={tickerRef}
+        className="ticker-track flex"
+        style={{
+          animation: 'ticker 25s linear infinite',
+        }}
+      >
+        {/* Render multiple copies for seamless loop */}
+        {renderTickerContent()}
+        {renderTickerContent()}
+        {renderTickerContent()}
+        {renderTickerContent()}
+      </div>
+    </div>
+  );
+}
+
 function TickerItem({ item }) {
   const isUp = item.change > 0;
   const isDown = item.change < 0;
 
+  const formatChange = (change) => {
+    const absChange = Math.abs(change);
+    if (absChange >= 1000) {
+      return absChange.toLocaleString();
+    }
+    return absChange % 1 === 0 ? absChange : absChange.toFixed(1);
+  };
+
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-sm font-medium text-slate-400">{item.name}</span>
+    <div className="flex items-center gap-2 shrink-0">
+      {/* Item Name & Unit */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-sm font-medium text-slate-300">{item.name}</span>
+        {item.unit && (
+          <span className="text-xs text-slate-500">({item.unit})</span>
+        )}
+      </div>
+
+      {/* Price */}
       <span className="text-sm font-bold text-white">
-        {typeof item.price === "number" ? item.price.toLocaleString() : item.price}
+        {typeof item.price === "number"
+          ? item.price.toLocaleString()
+          : item.price}
+        <span className="ml-1 text-xs font-normal text-slate-400">AFN</span>
       </span>
+
+      {/* Change Badge */}
       <span
-        className={`flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-xs font-semibold ${
+        className={`flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${
           isUp
-            ? "bg-emerald-500/20 text-emerald-400"
+            ? "bg-rose-500/20 text-rose-400"
             : isDown
-              ? "bg-rose-500/20 text-rose-400"
-              : "text-slate-400"
+              ? "bg-emerald-500/20 text-emerald-400"
+              : "bg-slate-500/20 text-slate-400"
         }`}
       >
-        <span className="text-[10px]">{isUp ? "▲" : isDown ? "▼" : "•"}</span>
-        {Math.abs(item.change).toFixed(2)}%
+        {isUp ? "▲" : isDown ? "▼" : ""}
+        {formatChange(item.change)} AFN
       </span>
-      <span className="text-slate-700">•</span>
+
+      {/* Separator */}
+      <span className="text-slate-600 ml-4">|</span>
     </div>
   );
 }
