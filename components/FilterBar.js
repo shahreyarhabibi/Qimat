@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { categories } from "@/lib/data";
 import {
-  XMarkIcon,
   ShoppingBagIcon,
   DevicePhoneMobileIcon,
   CurrencyDollarIcon,
   FireIcon,
   CubeIcon,
   Squares2X2Icon,
+  AdjustmentsHorizontalIcon,
+  XMarkIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
 const categoryIcons = {
@@ -19,118 +22,164 @@ const categoryIcons = {
   metals: CubeIcon,
 };
 
-export default function FilterBar({
-  selectedCategory,
-  setSelectedCategory,
-  isOpen,
-  setIsOpen,
-}) {
+export default function FilterBar({ selectedCategory, setSelectedCategory }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const handleSelect = (categoryId) => {
     setSelectedCategory(categoryId);
-    setIsOpen(false);
+    setIsExpanded(false);
   };
 
-  return (
-    <>
-      {/* Mobile Overlay */}
-      <div
-        className={`fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
-        onClick={() => setIsOpen(false)}
-      />
+  const selectedCategoryData = categories.find((c) => c.id === selectedCategory);
 
-      {/* Sidebar */}
-      <aside
-        className={`
-          fixed left-0 mt-10 top-0 z-50 flex h-full w-72 flex-col bg-slate-100 transition-transform duration-300 ease-out
-          dark:bg-slate-900
-          lg:z-10 lg:translate-x-0
-          ${isOpen ? "translate-x-0" : "-translate-x-full"}
-        `}
-      >
-        {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-6 py-4">
-          <div className="flex flex-col">
-            <span className="text-xl font-bold tracking-tight text-primary">
-              Qimat
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Real-time market prices
-            </span>
+  return (
+    <div className="w-full">
+      {/* Desktop: Horizontal Floating Pills */}
+      <div className="hidden md:block">
+        <div className="flex items-center gap-2 rounded-2xl bg-white/80 p-2 shadow-lg shadow-slate-200/50 ring-1 ring-slate-200/50 backdrop-blur-xl dark:bg-slate-800/80 dark:shadow-slate-900/50 dark:ring-slate-700/50">
+          <CategoryPill
+            label="All"
+            icon={Squares2X2Icon}
+            isActive={selectedCategory === null}
+            onClick={() => handleSelect(null)}
+          />
+          
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
+          
+          {categories.map((cat) => {
+            const Icon = categoryIcons[cat.id] || Squares2X2Icon;
+            return (
+              <CategoryPill
+                key={cat.id}
+                label={cat.name}
+                icon={Icon}
+                isActive={selectedCategory === cat.id}
+                onClick={() => handleSelect(cat.id)}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile: Dropdown Style */}
+      <div className="md:hidden">
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="flex w-full items-center justify-between rounded-xl bg-white px-4 py-3 shadow-lg shadow-slate-200/50 ring-1 ring-slate-200/50 dark:bg-slate-800 dark:shadow-slate-900/50 dark:ring-slate-700/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              {selectedCategory ? (
+                (() => {
+                  const Icon = categoryIcons[selectedCategory] || Squares2X2Icon;
+                  return <Icon className="h-5 w-5 text-primary" />;
+                })()
+              ) : (
+                <Squares2X2Icon className="h-5 w-5 text-primary" />
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                {selectedCategoryData?.name || "All Categories"}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Tap to change
+              </p>
+            </div>
           </div>
+          <ChevronDownIcon
+            className={`h-5 w-5 text-slate-400 transition-transform duration-200 ${
+              isExpanded ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {/* Mobile Dropdown Panel */}
+        <div
+          className={`mt-2 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200/50 transition-all duration-300 dark:bg-slate-800 dark:ring-slate-700/50 ${
+            isExpanded
+              ? "max-h-96 opacity-100"
+              : "max-h-0 opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="p-2">
+            <MobileFilterItem
+              label="All Categories"
+              icon={Squares2X2Icon}
+              isActive={selectedCategory === null}
+              onClick={() => handleSelect(null)}
+            />
+            {categories.map((cat) => {
+              const Icon = categoryIcons[cat.id] || Squares2X2Icon;
+              return (
+                <MobileFilterItem
+                  key={cat.id}
+                  label={cat.name}
+                  icon={Icon}
+                  isActive={selectedCategory === cat.id}
+                  onClick={() => handleSelect(cat.id)}
+                />
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Active Filter Badge (shown when filter is applied) */}
+      {selectedCategory && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-xs text-slate-500 dark:text-slate-400">
+            Filtering by:
+          </span>
           <button
-            onClick={() => setIsOpen(false)}
-            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 lg:hidden"
-            aria-label="Close sidebar"
+            onClick={() => setSelectedCategory(null)}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 py-1 pl-3 pr-2 text-xs font-medium text-primary transition-colors hover:bg-primary/20"
           >
-            <XMarkIcon className="h-5 w-5" />
+            {selectedCategoryData?.name}
+            <XMarkIcon className="h-3.5 w-3.5" />
           </button>
         </div>
-
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Categories Section */}
-          <div className="mb-6">
-            <h3 className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Categories
-            </h3>
-            <nav className="space-y-1">
-              {/* All Categories */}
-              <SidebarItem
-                label="All Items"
-                icon={Squares2X2Icon}
-                isActive={selectedCategory === null}
-                onClick={() => handleSelect(null)}
-              />
-
-              {/* Dynamic Categories */}
-              {categories.map((cat) => {
-                const Icon = categoryIcons[cat.id] || Squares2X2Icon;
-                return (
-                  <SidebarItem
-                    key={cat.id}
-                    label={cat.name}
-                    icon={Icon}
-                    isActive={selectedCategory === cat.id}
-                    onClick={() => handleSelect(cat.id)}
-                  />
-                );
-              })}
-            </nav>
-          </div>
-
-          {/* Quick Stats removed per request */}
-        </div>
-      </aside>
-    </>
+      )}
+    </div>
   );
 }
 
-function SidebarItem({ label, icon: Icon, isActive, onClick, muted = false }) {
+function CategoryPill({ label, icon: Icon, isActive, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+      className={`group flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
         isActive
-          ? "bg-primary text-white"
-          : muted
-            ? "text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-300"
-            : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+          ? "bg-primary text-white shadow-md shadow-primary/25"
+          : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50"
       }`}
     >
       <Icon
-        className={`h-5 w-5 shrink-0 ${
-          isActive
-            ? "text-white"
-            : muted
-              ? "text-slate-400 group-hover:text-slate-500 dark:text-slate-500"
-              : "text-slate-400 group-hover:text-slate-500 dark:text-slate-500"
+        className={`h-4 w-4 transition-transform duration-200 group-hover:scale-110 ${
+          isActive ? "text-white" : "text-slate-400 dark:text-slate-500"
         }`}
       />
-      <span className="truncate">{label}</span>
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function MobileFilterItem({ label, icon: Icon, isActive, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all ${
+        isActive
+          ? "bg-primary text-white"
+          : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50"
+      }`}
+    >
+      <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />
+      <span className="flex-1 text-left">{label}</span>
       {isActive && (
-        <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white"></span>
+        <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20">
+          <span className="h-2 w-2 rounded-full bg-white"></span>
+        </span>
       )}
     </button>
   );
