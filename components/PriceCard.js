@@ -23,7 +23,7 @@ export default function PriceCard({ item }) {
         className="object-cover transition-transform duration-500 md:group-hover:scale-105"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
 
       {item.change !== undefined && (
         <div className="absolute right-3 top-3">
