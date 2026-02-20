@@ -46,7 +46,7 @@ export default function TopNav({
 
       {/* Main Navbar */}
       <div className="border-b border-slate-200/50 bg-slate-50/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-[90%] items-center justify-between gap-4 px-4 py-3">
           {/* Logo */}
           <div className="shrink-0">
             <h1 className="text-xl font-bold tracking-tight text-primary">

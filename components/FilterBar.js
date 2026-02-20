@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { categories } from "@/lib/data";
 import {
+  MagnifyingGlassIcon,
   ShoppingBagIcon,
   DevicePhoneMobileIcon,
   CurrencyDollarIcon,
   FireIcon,
   CubeIcon,
   Squares2X2Icon,
-  AdjustmentsHorizontalIcon,
   XMarkIcon,
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";

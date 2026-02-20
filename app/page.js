@@ -29,8 +29,6 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Top Navigation */}
       <TopNav
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
         showNotificationDot={notifications}
       />
 
@@ -67,6 +65,8 @@ export default function Home() {
               <FilterBar
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
               />
             </div>
 

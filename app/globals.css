@@ -132,12 +132,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
-}
 
 /* Safe area for mobile bottom navbar */
 .pb-safe {

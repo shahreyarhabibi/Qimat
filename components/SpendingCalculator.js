@@ -19,10 +19,10 @@ const getUnitConfig = (unit) => {
   if (unitLower.includes("kg") || unitLower.includes("gram") || unitLower.includes("g")) {
     return {
       type: "weight",
-      step: 0.25,
-      min: 0.25,
+      step: 0.5,
+      min: 0.5,
       suffix: "kg",
-      presets: [0.25, 0.5, 1, 2, 5],
+      presets: [0.5, 1, 3, 5, 7, 10, 14],
       allowDecimal: true,
     };
   }
@@ -97,6 +97,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [quantityInput, setQuantityInput] = useState("1");
   const [basket, setBasket] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef(null);
@@ -138,12 +139,17 @@ export default function SpendingCalculator({ isOpen, onClose }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const setQuantityValue = (nextValue) => {
+    setQuantity(nextValue);
+    setQuantityInput(String(nextValue));
+  };
+
   const handleSelectItem = (item) => {
     setSelectedItem(item);
     setSearchQuery(item.name);
     setShowDropdown(false);
     const config = getUnitConfig(item.unit);
-    setQuantity(config.min);
+    setQuantityValue(config.min);
   };
 
   const handleAddToBasket = () => {
@@ -168,7 +174,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
 
     setSearchQuery("");
     setSelectedItem(null);
-    setQuantity(1);
+    setQuantityValue(1);
   };
 
   const handleRemoveFromBasket = (itemId) => {
@@ -214,6 +220,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
         }`}
         onClick={onClose}
       />
+
 
       {/* Calculator Panel */}
       <aside
@@ -332,7 +339,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                   {unitConfig.presets.map((preset) => (
                     <button
                       key={preset}
-                      onClick={() => setQuantity(preset)}
+                      onClick={() => setQuantityValue(preset)}
                       className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
                         quantity === preset
                           ? "bg-primary text-white shadow-md"
@@ -349,7 +356,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                   <div className="flex flex-1 items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-700 dark:ring-slate-600">
                     <button
                       onClick={() =>
-                        setQuantity(Math.max(unitConfig.min, quantity - unitConfig.step))
+                        setQuantityValue(Math.max(unitConfig.min, quantity - unitConfig.step))
                       }
                       className="rounded-l-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
                     >
@@ -359,17 +366,38 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                       type="number"
                       min={unitConfig.min}
                       step={unitConfig.step}
-                      value={quantity}
+                      value={quantityInput}
                       onChange={(e) => {
-                        const val = parseFloat(e.target.value);
+                        const rawValue = e.target.value;
+                        setQuantityInput(rawValue);
+
+                        if (rawValue === "") return;
+
+                        const val = parseFloat(rawValue);
                         if (!isNaN(val) && val >= unitConfig.min) {
                           setQuantity(unitConfig.allowDecimal ? val : Math.floor(val));
                         }
                       }}
+                      onBlur={() => {
+                        if (quantityInput === "") {
+                          setQuantityValue(quantity);
+                          return;
+                        }
+
+                        const val = parseFloat(quantityInput);
+                        if (isNaN(val) || val < unitConfig.min) {
+                          setQuantityValue(unitConfig.min);
+                          return;
+                        }
+
+                        setQuantityValue(
+                          unitConfig.allowDecimal ? val : Math.floor(val)
+                        );
+                      }}
                       className="w-full border-x border-slate-200 bg-transparent py-2 text-center text-sm font-semibold text-slate-900 focus:outline-none dark:border-slate-600 dark:text-white"
                     />
                     <button
-                      onClick={() => setQuantity(quantity + unitConfig.step)}
+                      onClick={() => setQuantityValue(quantity + unitConfig.step)}
                       className="rounded-r-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
                     >
                       <PlusIcon className="h-4 w-4" />
