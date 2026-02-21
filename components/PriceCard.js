@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 
-export default function PriceCard({ item }) {
+export default function PriceCard({ item, onClick }) {
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
 
@@ -21,20 +21,23 @@ export default function PriceCard({ item }) {
   };
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-all duration-300 hover:shadow-lg hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80">
+    <article
+      onClick={() => onClick?.(item)}
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-[box-shadow,ring-color,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80"
+    >
       {/* Image Container */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
         <Image
           src={item.image || "/placeholder.jpg"}
           alt={item.name}
           fill
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
         {/* Category Badge */}
         <div className="absolute left-2 top-2">
-          <span className="inline-flex items-center rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-300">
+          <span className="inline-flex items-center rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-300">
             {item.category}
           </span>
         </div>
@@ -43,7 +46,7 @@ export default function PriceCard({ item }) {
         {item.change !== 0 && (
           <div className="absolute right-2 top-2">
             <span
-              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold backdrop-blur-sm ${
+              className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold shadow-sm backdrop-blur-sm ${
                 isIncrease
                   ? "bg-rose-500/90 text-white"
                   : "bg-emerald-500/90 text-white"
@@ -58,38 +61,44 @@ export default function PriceCard({ item }) {
         {/* No Change Badge */}
         {item.change === 0 && (
           <div className="absolute right-2 top-2">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
               <span className="text-[10px]">•</span>
               Stable
             </span>
           </div>
         )}
+
+        {/* Click Indicator */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/10">
+          <span className="translate-y-4 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            View Details
+          </span>
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-3 md:p-4">
         {/* Product Name & Unit */}
-        <div className="flex  items-center justify-between">
+        <div className="flex items-center justify-between">
           <div className="mb-2">
-          <h3 className="text-sm font-semibold leading-tight text-slate-900 dark:text-white md:text-base">
-            {item.name}
-          </h3>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-            {item.unit}
-          </p>
-        </div>
+            <h3 className="text-sm font-semibold leading-tight text-slate-900 dark:text-white md:text-base">
+              {item.name}
+            </h3>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              {item.unit}
+            </p>
+          </div>
 
-        {/* Price */}
-        <div className="mb-3 flex items-baseline gap-1">
-          <span className="text-lg font-bold text-slate-900 dark:text-white md:text-2xl">
-            {formatPrice(item.price)}
-          </span>
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            AFN
-          </span>
+          {/* Price */}
+          <div className="mb-3 flex items-baseline gap-1">
+            <span className="text-lg font-bold text-slate-900 dark:text-white md:text-2xl">
+              {formatPrice(item.price)}
+            </span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              AFN
+            </span>
+          </div>
         </div>
-        </div>
-        
 
         {/* Source */}
         <div className="mt-auto flex items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-700">

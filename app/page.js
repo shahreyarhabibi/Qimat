@@ -5,6 +5,7 @@ import { items } from "@/lib/data";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
 import PriceCard from "@/components/PriceCard";
+import ProductModal from "@/components/ProductModal";
 import SpendingCalculator, { CalculatorFAB } from "@/components/SpendingCalculator";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
@@ -13,6 +14,8 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [notifications] = useState(true);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -24,6 +27,16 @@ export default function Home() {
       return matchesSearch && matchesCategory;
     });
   }, [searchQuery, selectedCategory]);
+
+  const handleOpenModal = (item) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
@@ -37,7 +50,7 @@ export default function Home() {
         <div className="flex gap-8">
           {/* Left Content Area */}
           <div className="min-w-0 flex-1">
-            {/* Page Header */}
+            {/* Page Header
             <div className="mb-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
@@ -58,7 +71,7 @@ export default function Home() {
                   items found
                 </p>
               </div>
-            </div>
+            </div> */}
 
             {/* Floating Filter Bar */}
             <div className="mb-8">
@@ -74,7 +87,7 @@ export default function Home() {
             {filteredItems.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredItems.map((item) => (
-                  <PriceCard key={item.id} item={item} />
+                  <PriceCard key={item.id} item={item} onClick={handleOpenModal} />
                 ))}
               </div>
             ) : (
@@ -116,6 +129,12 @@ export default function Home() {
           onClose={() => setCalculatorOpen(false)}
         />
       </div>
+
+      <ProductModal
+        item={selectedItem}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
