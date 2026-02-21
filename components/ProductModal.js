@@ -59,6 +59,33 @@ export default function ProductModal({ item, isOpen, onClose }) {
     return { min, max, avg, change, changePercent, first, last };
   }, [chartData]);
 
+  const priceBreakdown = useMemo(() => {
+    if (!item?.calculator) return null;
+    const config = item.calculator;
+    if (config.displayUnit !== "kg" || !config.baseQuantity) return null;
+
+    const pricePerKg = item.price / config.baseQuantity;
+    const presets = config.presets || [];
+    const hasSer = presets.some((p) => p.label.toLowerCase().includes("ser"));
+    const sackPreset = presets.find((p) =>
+      p.label.toLowerCase().includes("sack")
+    );
+
+    const entries = [{ label: "1 kg", qty: 1 }];
+    if (hasSer) entries.push({ label: "1 ser (7 kg)", qty: 7 });
+    if (sackPreset) {
+      entries.push({
+        label: `1 sack (${sackPreset.value} kg)`,
+        qty: sackPreset.value,
+      });
+    }
+
+    return entries.map((entry) => ({
+      ...entry,
+      price: pricePerKg * entry.qty,
+    }));
+  }, [item]);
+
   // Determine if price trend is up or down
   const isUpTrend = priceStats?.change >= 0;
 
@@ -180,6 +207,29 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     <span className="text-xs opacity-75">today</span>
                   </div>
                 </div>
+
+                {priceBreakdown && (
+                  <div className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Price Breakdown
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      {priceBreakdown.map((entry) => (
+                        <div
+                          key={entry.label}
+                          className="rounded-lg bg-white px-3 py-2 text-center shadow-sm ring-1 ring-slate-200/60 dark:bg-slate-900 dark:ring-slate-700/60"
+                        >
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {entry.label}
+                          </p>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                            {formatPrice(entry.price)} AFN
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

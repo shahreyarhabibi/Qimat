@@ -12,87 +12,6 @@ import {
   MinusIcon,
 } from "@heroicons/react/24/outline";
 
-// Helper to determine input type based on unit
-const getUnitConfig = (unit) => {
-  const unitLower = unit?.toLowerCase() || "";
-  
-  if (unitLower.includes("kg") || unitLower.includes("gram") || unitLower.includes("g")) {
-    return {
-      type: "weight",
-      step: 0.5,
-      min: 0.5,
-      suffix: "kg",
-      presets: [0.5, 1, 3, 5, 7, 10, 14],
-      allowDecimal: true,
-    };
-  }
-  
-  if (unitLower.includes("liter") || unitLower.includes("l")) {
-    return {
-      type: "volume",
-      step: 0.5,
-      min: 0.5,
-      suffix: "L",
-      presets: [0.5, 1, 2, 5, 10],
-      allowDecimal: true,
-    };
-  }
-  
-  if (unitLower.includes("m³") || unitLower.includes("m3")) {
-    return {
-      type: "volume",
-      step: 1,
-      min: 1,
-      suffix: "m³",
-      presets: [1, 5, 10, 20],
-      allowDecimal: true,
-    };
-  }
-  
-  if (unitLower.includes("pack")) {
-    return {
-      type: "count",
-      step: 1,
-      min: 1,
-      suffix: "pack",
-      presets: [1, 2, 3, 5],
-      allowDecimal: false,
-    };
-  }
-  
-  if (unitLower.includes("used")) {
-    return {
-      type: "device",
-      step: 1,
-      min: 1,
-      suffix: "unit",
-      presets: [1, 2],
-      allowDecimal: false,
-    };
-  }
-  
-  if (unitLower.includes("usd") || unitLower.includes("eur") || unitLower.includes("gbp") || unitLower.includes("aed") || unitLower.includes("pkr") || unitLower.includes("irr")) {
-    return {
-      type: "currency",
-      step: 10,
-      min: 1,
-      suffix: unit?.split(" ")[1] || "units",
-      presets: [10, 50, 100, 500, 1000],
-      allowDecimal: false,
-    };
-  }
-  
-  // Default
-  return {
-    type: "quantity",
-    step: 1,
-    min: 1,
-    suffix: "units",
-    presets: [1, 2, 5, 10],
-    allowDecimal: false,
-  };
-};
-
 export default function SpendingCalculator({ isOpen, onClose }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -103,10 +22,9 @@ export default function SpendingCalculator({ isOpen, onClose }) {
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
 
-  // Get unit config for selected item
-  const unitConfig = useMemo(() => {
-    if (!selectedItem) return null;
-    return getUnitConfig(selectedItem.unit);
+  // Get calculator config
+  const calcConfig = useMemo(() => {
+    return selectedItem?.calculator || null;
   }, [selectedItem]);
 
   // Filter items based on search
@@ -121,7 +39,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
 
   // Calculate total
   const total = useMemo(() => {
-    return basket.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return basket.reduce((sum, item) => sum + item.totalPrice, 0);
   }, [basket]);
 
   // Handle click outside dropdown
@@ -130,6 +48,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target) &&
+        searchRef.current &&
         !searchRef.current.contains(event.target)
       ) {
         setShowDropdown(false);
@@ -139,27 +58,43 @@ export default function SpendingCalculator({ isOpen, onClose }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const setQuantityValue = (nextValue) => {
-    setQuantity(nextValue);
-    setQuantityInput(String(nextValue));
+  const setQuantityValue = (value) => {
+    setQuantity(value);
+    setQuantityInput(String(value));
   };
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
     setSearchQuery(item.name);
     setShowDropdown(false);
-    const config = getUnitConfig(item.unit);
-    setQuantityValue(config.min);
+    const config = item.calculator;
+    if (config) {
+      const defaultQuantity = config.defaultQuantity ?? config.min;
+      setQuantityValue(defaultQuantity);
+    }
+  };
+
+  // Calculate price: (price / baseQuantity) * quantity
+  const calculatePrice = (item, qty) => {
+    const config = item.calculator;
+    if (!config) return item.price * qty;
+    const pricePerUnit = item.price / config.baseQuantity;
+    return pricePerUnit * qty;
   };
 
   const handleAddToBasket = () => {
-    if (!selectedItem) return;
+    if (!selectedItem || !calcConfig) return;
 
+    const totalPrice = calculatePrice(selectedItem, quantity);
     const existingIndex = basket.findIndex((b) => b.id === selectedItem.id);
 
     if (existingIndex > -1) {
       const newBasket = [...basket];
       newBasket[existingIndex].quantity += quantity;
+      newBasket[existingIndex].totalPrice = calculatePrice(
+        selectedItem,
+        newBasket[existingIndex].quantity
+      );
       setBasket(newBasket);
     } else {
       setBasket([
@@ -167,7 +102,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
         {
           ...selectedItem,
           quantity: quantity,
-          unitConfig: unitConfig,
+          totalPrice: totalPrice,
         },
       ]);
     }
@@ -183,16 +118,25 @@ export default function SpendingCalculator({ isOpen, onClose }) {
 
   const handleUpdateQuantity = (itemId, newQuantity) => {
     const item = basket.find((i) => i.id === itemId);
-    const config = item?.unitConfig || getUnitConfig(item?.unit);
-    
+    if (!item) return;
+
+    const config = item.calculator;
     if (newQuantity < config.min) {
       handleRemoveFromBasket(itemId);
       return;
     }
+
     setBasket(
-      basket.map((item) =>
-        item.id === itemId ? { ...item, quantity: newQuantity } : item
-      )
+      basket.map((basketItem) => {
+        if (basketItem.id === itemId) {
+          return {
+            ...basketItem,
+            quantity: newQuantity,
+            totalPrice: calculatePrice(basketItem, newQuantity),
+          };
+        }
+        return basketItem;
+      })
     );
   };
 
@@ -201,14 +145,13 @@ export default function SpendingCalculator({ isOpen, onClose }) {
   };
 
   const formatPrice = (price) => {
-    return price >= 1000 ? price.toLocaleString() : Number(price.toFixed(2)).toLocaleString();
+    if (price >= 1000) return Math.round(price).toLocaleString();
+    return Number(price.toFixed(2)).toLocaleString();
   };
 
-  const formatQuantity = (qty, config) => {
-    if (config?.allowDecimal) {
-      return qty % 1 === 0 ? qty : qty.toFixed(2);
-    }
-    return qty;
+  const formatQuantity = (qty, step) => {
+    if (step >= 1 || qty % 1 === 0) return qty;
+    return qty.toFixed(2);
   };
 
   return (
@@ -220,7 +163,6 @@ export default function SpendingCalculator({ isOpen, onClose }) {
         }`}
         onClick={onClose}
       />
-
 
       {/* Calculator Panel */}
       <aside
@@ -281,7 +223,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                   <button
                     key={item.id}
                     onClick={() => handleSelectItem(item)}
-                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-600 first:rounded-t-xl last:rounded-b-xl"
+                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50 first:rounded-t-xl last:rounded-b-xl dark:hover:bg-slate-600"
                   >
                     <div>
                       <p className="text-sm font-medium text-slate-900 dark:text-white">
@@ -291,9 +233,11 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                         {item.unit} • {item.category}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold text-primary">
-                      {formatPrice(item.price)} AFN
-                    </span>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-primary">
+                        {formatPrice(item.price)} AFN
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -301,7 +245,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
           </div>
 
           {/* Selected Item & Quantity */}
-          {selectedItem && unitConfig && (
+          {selectedItem && calcConfig && (
             <div className="mt-4 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 dark:from-primary/10 dark:to-primary/20">
               <div className="flex items-start justify-between">
                 <div>
@@ -309,7 +253,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                     {selectedItem.name}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                    {formatPrice(selectedItem.price)} AFN per {selectedItem.unit}
+                    {formatPrice(selectedItem.price)} AFN / {selectedItem.unit}
                   </p>
                 </div>
                 <button
@@ -323,40 +267,40 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {/* Quantity Label */}
+              {/* Quick Presets */}
               <div className="mt-4">
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  {unitConfig.type === "weight" && "How much do you need?"}
-                  {unitConfig.type === "volume" && "How many liters?"}
-                  {unitConfig.type === "currency" && "Amount to exchange"}
-                  {unitConfig.type === "count" && "How many packs?"}
-                  {unitConfig.type === "device" && "Quantity"}
-                  {unitConfig.type === "quantity" && "Quantity"}
+                  Quick Select
                 </label>
-
-                {/* Preset Buttons */}
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {unitConfig.presets.map((preset) => (
+                  {calcConfig.presets.map((preset, index) => (
                     <button
-                      key={preset}
-                      onClick={() => setQuantityValue(preset)}
+                      key={index}
+                      onClick={() => setQuantityValue(preset.value)}
                       className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                        quantity === preset
+                        quantity === preset.value
                           ? "bg-primary text-white shadow-md"
                           : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-primary/50 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
                       }`}
                     >
-                      {preset} {unitConfig.suffix}
+                      {preset.label}
                     </button>
                   ))}
                 </div>
+              </div>
 
-                {/* Custom Input */}
-                <div className="mt-3 flex items-center gap-2">
+              {/* Custom Quantity Input */}
+              <div className="mt-4">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                  Custom Amount
+                </label>
+                <div className="mt-2 flex items-center gap-2">
                   <div className="flex flex-1 items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-700 dark:ring-slate-600">
                     <button
                       onClick={() =>
-                        setQuantityValue(Math.max(unitConfig.min, quantity - unitConfig.step))
+                        setQuantityValue(
+                          Math.max(calcConfig.min, quantity - calcConfig.step)
+                        )
                       }
                       className="rounded-l-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
                     >
@@ -364,18 +308,16 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                     </button>
                     <input
                       type="number"
-                      min={unitConfig.min}
-                      step={unitConfig.step}
+                      min={calcConfig.min}
+                      step={calcConfig.step}
                       value={quantityInput}
                       onChange={(e) => {
                         const rawValue = e.target.value;
                         setQuantityInput(rawValue);
-
                         if (rawValue === "") return;
-
                         const val = parseFloat(rawValue);
-                        if (!isNaN(val) && val >= unitConfig.min) {
-                          setQuantity(unitConfig.allowDecimal ? val : Math.floor(val));
+                        if (!isNaN(val) && val >= calcConfig.min) {
+                          setQuantity(val);
                         }
                       }}
                       onBlur={() => {
@@ -383,38 +325,36 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                           setQuantityValue(quantity);
                           return;
                         }
-
                         const val = parseFloat(quantityInput);
-                        if (isNaN(val) || val < unitConfig.min) {
-                          setQuantityValue(unitConfig.min);
+                        if (isNaN(val) || val < calcConfig.min) {
+                          setQuantityValue(calcConfig.min);
                           return;
                         }
-
-                        setQuantityValue(
-                          unitConfig.allowDecimal ? val : Math.floor(val)
-                        );
+                        setQuantityValue(val);
                       }}
                       className="w-full border-x border-slate-200 bg-transparent py-2 text-center text-sm font-semibold text-slate-900 focus:outline-none dark:border-slate-600 dark:text-white"
                     />
                     <button
-                      onClick={() => setQuantityValue(quantity + unitConfig.step)}
+                      onClick={() => setQuantityValue(quantity + calcConfig.step)}
                       className="rounded-r-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
                     >
                       <PlusIcon className="h-4 w-4" />
                     </button>
                   </div>
-                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {unitConfig.suffix}
+                  <span className="min-w-[50px] text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {calcConfig.displayUnit}
                   </span>
                 </div>
               </div>
 
               {/* Subtotal & Add Button */}
-              <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200/50 pt-4">
                 <div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Subtotal</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Subtotal ({formatQuantity(quantity, calcConfig.step)} {calcConfig.displayUnit})
+                  </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
-                    {formatPrice(selectedItem.price * quantity)}{" "}
+                    {formatPrice(calculatePrice(selectedItem, quantity))}{" "}
                     <span className="text-sm font-normal text-slate-500">AFN</span>
                   </p>
                 </div>
@@ -423,7 +363,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                   className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary/90 hover:shadow-xl"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  Add to List
+                  Add
                 </button>
               </div>
             </div>
@@ -434,7 +374,6 @@ export default function SpendingCalculator({ isOpen, onClose }) {
         <div className="flex-1 overflow-y-auto p-5">
           {basket.length > 0 ? (
             <div className="space-y-3">
-              {/* Basket Header */}
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Your List ({basket.length} items)
@@ -447,9 +386,8 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                 </button>
               </div>
 
-              {/* Items List */}
               {basket.map((item) => {
-                const config = item.unitConfig || getUnitConfig(item.unit);
+                const config = item.calculator;
                 return (
                   <div
                     key={item.id}
@@ -460,7 +398,7 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                         {item.name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatQuantity(item.quantity, config)} {config.suffix} × {formatPrice(item.price)} AFN
+                        {formatQuantity(item.quantity, config.step)} {config.displayUnit}
                       </p>
                     </div>
 
@@ -474,8 +412,8 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                       >
                         <MinusIcon className="h-3 w-3" />
                       </button>
-                      <span className="min-w-[2rem] text-center text-xs font-medium text-slate-700 dark:text-slate-200">
-                        {formatQuantity(item.quantity, config)}
+                      <span className="min-w-[2.5rem] text-center text-xs font-medium text-slate-700 dark:text-slate-200">
+                        {formatQuantity(item.quantity, config.step)}
                       </span>
                       <button
                         onClick={() =>
@@ -490,12 +428,11 @@ export default function SpendingCalculator({ isOpen, onClose }) {
                     {/* Item Total */}
                     <div className="w-20 text-right">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {formatPrice(item.price * item.quantity)}
+                        {formatPrice(item.totalPrice)}
                       </p>
                       <p className="text-[10px] text-slate-400">AFN</p>
                     </div>
 
-                    {/* Remove Button */}
                     <button
                       onClick={() => handleRemoveFromBasket(item.id)}
                       className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-100 hover:text-rose-500 dark:hover:bg-rose-500/20"
