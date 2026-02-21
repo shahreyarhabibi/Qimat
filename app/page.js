@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { items } from "@/lib/data";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
@@ -16,6 +16,8 @@ export default function Home() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const desktopCalcRef = useRef(null);
+  const mobileCalcRef = useRef(null);
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -36,6 +38,11 @@ export default function Home() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedItem(null);
+  };
+
+  const handleAddToSpendingList = (item) => {
+    desktopCalcRef.current?.addItem(item);
+    mobileCalcRef.current?.addItem(item);
   };
 
   return (
@@ -87,7 +94,12 @@ export default function Home() {
             {filteredItems.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredItems.map((item) => (
-                  <PriceCard key={item.id} item={item} onClick={handleOpenModal} />
+                  <PriceCard
+                    key={item.id}
+                    item={item}
+                    onClick={handleOpenModal}
+                    onAdd={handleAddToSpendingList}
+                  />
                 ))}
               </div>
             ) : (
@@ -115,7 +127,7 @@ export default function Home() {
           {/* Right Sidebar - Spending Calculator (Desktop) */}
           <div className="hidden w-[340px] shrink-0 lg:block xl:w-[380px]">
             <div className="sticky top-32">
-              <SpendingCalculator isOpen={true} onClose={() => {}} />
+              <SpendingCalculator ref={desktopCalcRef} isOpen={true} onClose={() => {}} />
             </div>
           </div>
         </div>
@@ -125,6 +137,7 @@ export default function Home() {
       <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
       <div className="lg:hidden">
         <SpendingCalculator
+          ref={mobileCalcRef}
           isOpen={calculatorOpen}
           onClose={() => setCalculatorOpen(false)}
         />

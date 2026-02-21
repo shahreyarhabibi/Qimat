@@ -1,7 +1,7 @@
 ﻿import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 
-export default function PriceCard({ item, onClick }) {
+export default function PriceCard({ item, onClick, onAdd }) {
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
 
@@ -23,7 +23,7 @@ export default function PriceCard({ item, onClick }) {
   return (
     <article
       onClick={() => onClick?.(item)}
-      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-[box-shadow,ring-color,transform] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80"
+      className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-[box-shadow,ring-color] duration-300 ease-out hover:shadow-xl hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80"
     >
       {/* Image Container */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
@@ -68,11 +68,28 @@ export default function PriceCard({ item, onClick }) {
           </div>
         )}
 
-        {/* Click Indicator */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/10">
-          <span className="translate-y-4 rounded-full bg-white/90 px-4 py-2 text-xs font-semibold text-slate-700 opacity-0 shadow-lg backdrop-blur-sm transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            View Details
-          </span>
+        {/* Hover Actions */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/15">
+          <div className="flex translate-y-4 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onClick?.(item);
+              }}
+              className="cursor-pointer rounded-full bg-white/95 px-4 py-2 text-xs font-semibold text-slate-700 shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-white hover:shadow-xl active:translate-y-0"
+            >
+              See Details
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAdd?.(item);
+              }}
+              className="cursor-pointer rounded-full bg-primary/95 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-primary hover:shadow-xl active:translate-y-0"
+            >
+              Add to List
+            </button>
+          </div>
         </div>
       </div>
 

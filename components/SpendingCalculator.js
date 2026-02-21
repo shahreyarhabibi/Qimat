@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { items } from "@/lib/data";
 import {
   MagnifyingGlassIcon,
@@ -12,7 +12,10 @@ import {
   MinusIcon,
 } from "@heroicons/react/24/outline";
 
-export default function SpendingCalculator({ isOpen, onClose }) {
+const SpendingCalculator = forwardRef(function SpendingCalculator(
+  { isOpen, onClose },
+  ref
+) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -63,14 +66,19 @@ export default function SpendingCalculator({ isOpen, onClose }) {
     setQuantityInput(String(value));
   };
 
+  const getDefaultQuantity = (item) => {
+    const config = item?.calculator;
+    if (!config) return 1;
+    return config.defaultQuantity ?? config.min ?? 1;
+  };
+
   const handleSelectItem = (item) => {
     setSelectedItem(item);
     setSearchQuery(item.name);
     setShowDropdown(false);
     const config = item.calculator;
     if (config) {
-      const defaultQuantity = config.defaultQuantity ?? config.min;
-      setQuantityValue(defaultQuantity);
+      setQuantityValue(getDefaultQuantity(item));
     }
   };
 
@@ -82,17 +90,17 @@ export default function SpendingCalculator({ isOpen, onClose }) {
     return pricePerUnit * qty;
   };
 
-  const handleAddToBasket = () => {
-    if (!selectedItem || !calcConfig) return;
-
-    const totalPrice = calculatePrice(selectedItem, quantity);
-    const existingIndex = basket.findIndex((b) => b.id === selectedItem.id);
+  const addItemToBasket = (item, qty) => {
+    if (!item) return;
+    const quantityToAdd = qty ?? getDefaultQuantity(item);
+    const totalPrice = calculatePrice(item, quantityToAdd);
+    const existingIndex = basket.findIndex((b) => b.id === item.id);
 
     if (existingIndex > -1) {
       const newBasket = [...basket];
-      newBasket[existingIndex].quantity += quantity;
+      newBasket[existingIndex].quantity += quantityToAdd;
       newBasket[existingIndex].totalPrice = calculatePrice(
-        selectedItem,
+        item,
         newBasket[existingIndex].quantity
       );
       setBasket(newBasket);
@@ -100,13 +108,21 @@ export default function SpendingCalculator({ isOpen, onClose }) {
       setBasket([
         ...basket,
         {
-          ...selectedItem,
-          quantity: quantity,
+          ...item,
+          quantity: quantityToAdd,
           totalPrice: totalPrice,
         },
       ]);
     }
+  };
 
+  useImperativeHandle(ref, () => ({
+    addItem: (item) => addItemToBasket(item),
+  }));
+
+  const handleAddToBasket = () => {
+    if (!selectedItem || !calcConfig) return;
+    addItemToBasket(selectedItem, quantity);
     setSearchQuery("");
     setSelectedItem(null);
     setQuantityValue(1);
@@ -485,7 +501,11 @@ export default function SpendingCalculator({ isOpen, onClose }) {
       </aside>
     </>
   );
-}
+});
+
+SpendingCalculator.displayName = "SpendingCalculator";
+
+export default SpendingCalculator;
 
 // Floating Button Component for Mobile
 export function CalculatorFAB({ onClick, itemCount }) {
