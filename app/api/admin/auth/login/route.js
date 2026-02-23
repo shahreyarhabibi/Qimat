@@ -16,7 +16,7 @@ export async function POST(request) {
     }
 
     // Verify credentials
-    const isValid = verifyCredentials(username, password);
+    const isValid = await verifyCredentials(username, password);
 
     if (!isValid) {
       // Log failed attempt (optional)
