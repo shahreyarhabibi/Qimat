@@ -14,8 +14,11 @@ import {
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [categories, setCategories] = useState([]);
   const [sources, setSources] = useState([]);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -42,6 +45,14 @@ export default function NewProductPage() {
     fetchSources();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
+
   const fetchCategories = async () => {
     const res = await fetch("/api/admin/categories");
     const data = await res.json();
@@ -59,10 +70,30 @@ export default function NewProductPage() {
     setLoading(true);
 
     try {
+      let imagePath = formData.image;
+
+      if (selectedImageFile) {
+        setUploadingImage(true);
+        const imageFormData = new FormData();
+        imageFormData.append("file", selectedImageFile);
+
+        const uploadRes = await fetch("/api/admin/products/upload", {
+          method: "POST",
+          body: imageFormData,
+        });
+        const uploadData = await uploadRes.json();
+
+        if (!uploadRes.ok || !uploadData.success) {
+          throw new Error(uploadData.error || "Image upload failed");
+        }
+
+        imagePath = uploadData.data.path;
+      }
+
       const res = await fetch("/api/admin/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, image: imagePath }),
       });
 
       const data = await res.json();
@@ -74,10 +105,29 @@ export default function NewProductPage() {
       }
     } catch (error) {
       console.error("Error creating product:", error);
-      alert("Failed to create product");
+      alert(error.message || "Failed to create product");
     } finally {
+      setUploadingImage(false);
       setLoading(false);
     }
+  };
+
+  const handleImageFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setSelectedImageFile(null);
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+      setImagePreviewUrl("");
+      return;
+    }
+
+    if (imagePreviewUrl) {
+      URL.revokeObjectURL(imagePreviewUrl);
+    }
+    setSelectedImageFile(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
   };
 
   const addPreset = () => {
@@ -232,17 +282,29 @@ export default function NewProductPage() {
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                Image Path
+                Product Image
               </label>
-              <input
-                type="text"
-                value={formData.image}
-                onChange={(e) =>
-                  setFormData({ ...formData, image: e.target.value })
-                }
-                placeholder="/products/product-name.jpg"
-                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
-              />
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2 text-sm text-slate-900 ring-1 ring-slate-200 file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-primary hover:file:bg-primary/20 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+                {imagePreviewUrl ? (
+                  <div className="rounded-xl bg-slate-50 p-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                    <img
+                      src={imagePreviewUrl}
+                      alt="Preview"
+                      className="h-24 w-24 rounded-lg object-cover"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-xs text-slate-500">
+                    Upload JPG, PNG, WEBP, or GIF (max 5MB)
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="sm:col-span-2">
@@ -455,7 +517,8 @@ export default function NewProductPage() {
               </div>
             ) : (
               <p className="text-sm text-slate-500">
-                No presets added. Add presets like "1 kg", "1 ser (7 kg)", etc.
+                No presets added. Add presets like &quot;1 kg&quot;,
+                &quot;1 ser (7 kg)&quot;, etc.
               </p>
             )}
           </div>
@@ -534,10 +597,14 @@ export default function NewProductPage() {
           </Link>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploadingImage}
             className="flex-1 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
           >
-            {loading ? "Creating..." : "Create Product"}
+            {uploadingImage
+              ? "Uploading image..."
+              : loading
+                ? "Creating..."
+                : "Create Product"}
           </button>
         </div>
       </form>
