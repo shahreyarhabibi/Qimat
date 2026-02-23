@@ -1,7 +1,7 @@
 // components/TopNav.jsx
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -27,22 +27,23 @@ export default function TopNav({
   setSearchQuery,
   showNotificationDot,
 }) {
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Initialize dark mode on mount
-  useEffect(() => {
-    setDarkMode(document.documentElement.classList.contains("dark"));
-  }, []);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
 
   const toggleDarkMode = () => {
-    if (darkMode) {
-      document.documentElement.classList.remove("dark");
-      localStorage.theme = "light";
-    } else {
-      document.documentElement.classList.add("dark");
-      localStorage.theme = "dark";
-    }
-    setDarkMode(!darkMode);
+    setDarkMode((prev) => {
+      const next = !prev;
+      if (next) {
+        document.documentElement.classList.add("dark");
+        localStorage.theme = "dark";
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.theme = "light";
+      }
+      return next;
+    });
   };
 
   // Get ticker items from items prop by slug
