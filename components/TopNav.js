@@ -1,7 +1,7 @@
 // components/TopNav.jsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -31,6 +31,7 @@ export default function TopNav({
     if (typeof document === "undefined") return false;
     return document.documentElement.classList.contains("dark");
   });
+  const [tickerProductIds, setTickerProductIds] = useState([]);
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
@@ -46,16 +47,52 @@ export default function TopNav({
     });
   };
 
-  // Get ticker items from items prop by slug
-  // If slug doesn't exist, try matching by name
-  const tickerData = items.filter((item) => {
-    const itemSlug = item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
-    return TICKER_SLUGS.includes(itemSlug);
-  });
+  useEffect(() => {
+    let isMounted = true;
 
-  // If we don't have enough ticker items, just use the first 6 items
-  const displayTickerData =
-    tickerData.length >= 4 ? tickerData : items.slice(0, 6);
+    const fetchTickerConfig = async () => {
+      try {
+        const res = await fetch("/api/admin/ticker", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const contentType = res.headers.get("content-type") || "";
+        if (!contentType.includes("application/json")) return;
+
+        const data = await res.json();
+        if (!isMounted || !data?.success || !Array.isArray(data.data)) return;
+
+        setTickerProductIds(data.data.map((item) => String(item.id)));
+      } catch {
+        // Keep fallback ticker when API is unavailable.
+      }
+    };
+
+    fetchTickerConfig();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayTickerData = useMemo(() => {
+    if (tickerProductIds.length > 0) {
+      const itemsById = new Map(items.map((item) => [String(item.id), item]));
+      const configuredTickerItems = tickerProductIds
+        .map((id) => itemsById.get(id))
+        .filter(Boolean);
+
+      if (configuredTickerItems.length > 0) {
+        return configuredTickerItems;
+      }
+    }
+
+    // Fallback: previous hardcoded ticker behavior.
+    const fallbackTicker = items.filter((item) => {
+      const itemSlug = item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
+      return TICKER_SLUGS.includes(itemSlug);
+    });
+
+    return fallbackTicker.length >= 4 ? fallbackTicker : items.slice(0, 6);
+  }, [items, tickerProductIds]);
 
   return (
     <header className="sticky top-0 z-30">
