@@ -18,11 +18,13 @@ import {
   CalculatorIcon,
   MinusIcon,
 } from "@heroicons/react/24/outline";
+import { useCurrency } from "@/lib/context/CurrencyContext";
 
 const SpendingCalculator = forwardRef(function SpendingCalculator(
   { items = [], isOpen, onClose },
   ref,
 ) {
+  const { formatPrice, currentCurrency, exchangeRates } = useCurrency();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -51,6 +53,14 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const total = useMemo(() => {
     return basket.reduce((sum, item) => sum + item.totalPrice, 0);
   }, [basket]);
+
+  // Format price helper using currency context
+  const formatDisplayPrice = (price) => {
+    if (currentCurrency.code === "AFN") {
+      return formatPrice(price, { showSymbol: false });
+    }
+    return formatPrice(price, { showSymbol: true });
+  };
 
   // Handle click outside dropdown
   useEffect(() => {
@@ -167,11 +177,6 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     setBasket([]);
   };
 
-  const formatPrice = (price) => {
-    if (price >= 1000) return Math.round(price).toLocaleString();
-    return Number(price.toFixed(2)).toLocaleString();
-  };
-
   const formatQuantity = (qty, step) => {
     if (!step || step >= 1 || qty % 1 === 0) return qty;
     return qty.toFixed(2);
@@ -258,7 +263,12 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     </div>
                     <div className="text-right">
                       <span className="text-sm font-semibold text-primary">
-                        {formatPrice(item.price)} AFN
+                        {formatDisplayPrice(item.price)}
+                        {currentCurrency.code === "AFN" && (
+                          <span className="ml-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                            AFN
+                          </span>
+                        )}
                       </span>
                     </div>
                   </button>
@@ -276,7 +286,11 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     {selectedItem.name}
                   </p>
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                    {formatPrice(selectedItem.price)} AFN / {selectedItem.unit}
+                    {formatDisplayPrice(selectedItem.price)}
+                    {currentCurrency.code === "AFN"
+                      ? " AFN"
+                      : ` ${currentCurrency.code}`}{" "}
+                    / {selectedItem.unit}
                   </p>
                 </div>
                 <button
@@ -382,10 +396,12 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     {calcConfig.displayUnit})
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
-                    {formatPrice(calculatePrice(selectedItem, quantity))}{" "}
-                    <span className="text-sm font-normal text-slate-500">
-                      AFN
-                    </span>
+                    {formatDisplayPrice(calculatePrice(selectedItem, quantity))}
+                    {currentCurrency.code === "AFN" && (
+                      <span className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                        AFN
+                      </span>
+                    )}
                   </p>
                 </div>
                 <button
@@ -467,9 +483,18 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
 
                     <div className="w-20 text-right">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                        {formatPrice(item.totalPrice)}
+                        {formatDisplayPrice(item.totalPrice)}
+                        {currentCurrency.code === "AFN" && (
+                          <span className="ml-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                            AFN
+                          </span>
+                        )}
                       </p>
-                      <p className="text-[10px] text-slate-400">AFN</p>
+                      {currentCurrency.code !== "AFN" && (
+                        <p className="text-[10px] text-slate-400">
+                          {currentCurrency.code}
+                        </p>
+                      )}
                     </div>
 
                     <button
@@ -506,19 +531,36 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   Total Estimated Cost
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {formatPrice(total)}{" "}
-                  <span className="text-sm font-normal text-slate-500">
-                    AFN
-                  </span>
+                  {formatDisplayPrice(total)}
+                  {currentCurrency.code === "AFN" && (
+                    <span className="ml-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                      AFN
+                    </span>
+                  )}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Approximately
-                </p>
-                <p className="text-lg font-semibold text-primary">
-                  ${(total / 70.5).toFixed(2)} USD
-                </p>
+                {currentCurrency.code === "AFN" && exchangeRates.USD && (
+                  <>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      Approximately
+                    </p>
+                    <p className="text-lg font-semibold text-primary">
+                      ${Math.round(total / exchangeRates.USD).toLocaleString()}{" "}
+                      USD
+                    </p>
+                  </>
+                )}
+                {currentCurrency.code !== "AFN" && (
+                  <>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      In AFN
+                    </p>
+                    <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">
+                      {Math.round(total).toLocaleString()} AFN
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>

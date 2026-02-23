@@ -7,8 +7,10 @@ import {
   BellIcon,
   SunIcon,
   MoonIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import NotificationModal from "./NotificationModal";
+import { useCurrency, CURRENCIES } from "@/lib/context/CurrencyContext";
 
 // Ticker items by slug (these will be filtered from the items prop)
 const TICKER_SLUGS = [
@@ -92,7 +94,6 @@ export default function TopNav({
     };
 
     fetchNotificationCount();
-    // Refresh every 5 minutes
     const interval = setInterval(fetchNotificationCount, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
@@ -109,7 +110,6 @@ export default function TopNav({
       }
     }
 
-    // Fallback: previous hardcoded ticker behavior.
     const fallbackTicker = items.filter((item) => {
       const itemSlug =
         item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
@@ -156,6 +156,10 @@ export default function TopNav({
                   className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                 />
               </div>
+
+              {/* Currency Selector */}
+              <CurrencySelector />
+
               <HeaderActions
                 darkMode={darkMode}
                 notificationCount={notificationCount}
@@ -176,6 +180,119 @@ export default function TopNav({
         onClose={() => setNotificationOpen(false)}
       />
     </>
+  );
+}
+
+// Currency Selector Component
+function CurrencySelector() {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const { selectedCurrency, changeCurrency, exchangeRates, currentCurrency } =
+    useCurrency();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const currencyOptions = Object.values(CURRENCIES).filter(
+    (c) => c.code === "AFN" || exchangeRates[c.code],
+  );
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+      >
+        <span className="text-base">{currentCurrency.flag}</span>
+        <span className="hidden sm:inline">{currentCurrency.code}</span>
+        <ChevronDownIcon
+          className={`h-4 w-4 text-slate-400 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+          <div className="p-2">
+            <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Select Currency
+            </p>
+            {currencyOptions.map((currency) => {
+              const isSelected = selectedCurrency === currency.code;
+              const rate = exchangeRates[currency.code];
+
+              return (
+                <button
+                  key={currency.code}
+                  onClick={() => {
+                    changeCurrency(currency.code);
+                    setIsOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                    isSelected
+                      ? "bg-primary/10 text-primary"
+                      : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  <span className="text-xl">{currency.flag}</span>
+                  <div className="flex-1">
+                    <p className="font-medium">{currency.code}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {currency.name}
+                    </p>
+                  </div>
+                  {currency.code !== "AFN" && rate && (
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        1 {currency.code}
+                      </p>
+                      <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        {Math.round(rate).toLocaleString()} AFN
+                      </p>
+                    </div>
+                  )}
+                  {isSelected && (
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                      <svg
+                        className="h-3 w-3 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Rate Info */}
+          <div className="border-t border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-[10px] text-slate-400">
+              Rates updated daily from Sarai Shahzada
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -223,22 +340,12 @@ function TickerSkeleton() {
 }
 
 function TickerItem({ item }) {
+  const { formatPrice, convertPrice, currentCurrency } = useCurrency();
   const isUp = item.change > 0;
   const isDown = item.change < 0;
 
-  const formatChange = (change) => {
-    const absChange = Math.abs(change);
-    if (absChange >= 1000) {
-      return absChange.toLocaleString();
-    }
-    return absChange % 1 === 0 ? absChange : absChange.toFixed(1);
-  };
-
-  const formatPrice = (price) => {
-    if (typeof price !== "number") return price;
-    if (price >= 1000) return price.toLocaleString();
-    return price % 1 === 0 ? price : price.toFixed(2);
-  };
+  const formatChange = (change) =>
+    Math.round(Math.abs(convertPrice(change))).toLocaleString();
 
   return (
     <div className="flex shrink-0 items-center gap-2">
@@ -250,8 +357,10 @@ function TickerItem({ item }) {
       </div>
 
       <span className="text-sm font-bold text-white">
-        {formatPrice(item.price)}
-        <span className="ml-1 text-xs font-normal text-slate-400">AFN</span>
+        {formatPrice(item.price, { showSymbol: false })}
+        <span className="ml-1 text-xs font-normal text-slate-400">
+          {currentCurrency.code}
+        </span>
       </span>
 
       <span
@@ -263,15 +372,14 @@ function TickerItem({ item }) {
               : "bg-slate-500/20 text-slate-400"
         }`}
       >
-        {isUp ? "▲" : isDown ? "▼" : ""}
-        {formatChange(item.change)} AFN
+        {isUp ? "+" : isDown ? "-" : ""}
+        {formatChange(item.change)} {currentCurrency.code}
       </span>
 
       <span className="ml-4 text-slate-600">|</span>
     </div>
   );
 }
-
 function HeaderActions({
   darkMode,
   notificationCount,
@@ -308,3 +416,5 @@ function HeaderActions({
     </div>
   );
 }
+
+

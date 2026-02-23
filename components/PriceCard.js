@@ -1,23 +1,21 @@
+// components/PriceCard.jsx
 import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
+import { useCurrency } from "@/lib/context/CurrencyContext";
 
 export default function PriceCard({ item, onClick, onAdd }) {
+  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
   const isIncrease = item.change > 0;
-
-  const formatPrice = (price) => {
-    if (price >= 1000) {
-      return price.toLocaleString();
-    }
-    return price % 1 === 0 ? price : price.toFixed(2);
-  };
+  const isDecrease = item.change < 0;
 
   const formatChange = (change) => {
-    const absChange = Math.abs(change);
-    if (absChange >= 1000) {
-      return absChange.toLocaleString();
-    }
-    return absChange % 1 === 0 ? absChange : absChange.toFixed(2);
+    return Math.round(Math.abs(convertPrice(change))).toLocaleString();
   };
+
+  const mainPrice =
+    currentCurrency.code === "AFN"
+      ? formatPrice(item.price, { showSymbol: false })
+      : formatPrice(item.price, { showSymbol: true });
 
   return (
     <article
@@ -25,7 +23,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
       className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-[box-shadow,ring-color] duration-300 ease-out hover:shadow-xl hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80"
     >
       {/* Image Container */}
-      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
         <Image
           src={item.image || "/placeholder.jpg"}
           alt={item.name}
@@ -51,8 +49,8 @@ export default function PriceCard({ item, onClick, onAdd }) {
                   : "bg-emerald-500/90 text-white"
               }`}
             >
-              <span className="text-[10px]">{isIncrease ? "+" : "-"}</span>
-              {formatChange(item.change)} AFN
+              <span className="text-[10px]">{isIncrease ? "▲" : "▼"}</span>
+              {formatChange(item.change)} {currentCurrency.code}
             </span>
           </div>
         )}
@@ -61,7 +59,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
         {item.change === 0 && (
           <div className="absolute right-2 top-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
-              <span className="text-[10px]">*</span>
+              <span className="text-[10px]">•</span>
               Stable
             </span>
           </div>
@@ -108,11 +106,13 @@ export default function PriceCard({ item, onClick, onAdd }) {
           {/* Price */}
           <div className="mb-3 flex items-baseline gap-1">
             <span className="text-lg font-bold text-slate-900 dark:text-white md:text-2xl">
-              {formatPrice(item.price)}
+              {mainPrice}
             </span>
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              AFN
-            </span>
+            {currentCurrency.code === "AFN" && (
+              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                AF
+              </span>
+            )}
           </div>
         </div>
 

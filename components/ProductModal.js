@@ -1,3 +1,4 @@
+// components/ProductModal.jsx
 "use client";
 
 import { useState, useMemo } from "react";
@@ -21,6 +22,7 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
+import { useCurrency } from "@/lib/context/CurrencyContext";
 
 const TIME_RANGES = [
   { id: "7d", label: "7D", days: 7 },
@@ -31,6 +33,7 @@ const TIME_RANGES = [
 
 export default function ProductModal({ item, isOpen, onClose }) {
   const [selectedRange, setSelectedRange] = useState("7d");
+  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
 
   const chartData = useMemo(() => {
     if (!item?.priceHistory) return [];
@@ -41,20 +44,21 @@ export default function ProductModal({ item, isOpen, onClose }) {
         month: "short",
         day: "numeric",
       }),
+      convertedPrice: convertPrice(d.price),
     }));
-  }, [item, selectedRange]);
+  }, [item, selectedRange, convertPrice]);
 
   const priceStats = useMemo(() => {
     if (!chartData.length) return null;
 
-    const prices = chartData.map((d) => d.price);
+    const prices = chartData.map((d) => d.convertedPrice);
     const min = Math.min(...prices);
     const max = Math.max(...prices);
     const avg = prices.reduce((a, b) => a + b, 0) / prices.length;
     const first = prices[0];
     const last = prices[prices.length - 1];
     const change = last - first;
-    const changePercent = ((change / first) * 100).toFixed(2);
+    const changePercent = ((change / first) * 100).toFixed(1);
 
     return { min, max, avg, change, changePercent, first, last };
   }, [chartData]);
@@ -64,11 +68,11 @@ export default function ProductModal({ item, isOpen, onClose }) {
     const config = item.calculator;
     if (config.displayUnit !== "kg" || !config.baseQuantity) return null;
 
-    const pricePerKg = item.price / config.baseQuantity;
+    const pricePerKg = convertPrice(item.price) / config.baseQuantity;
     const presets = config.presets || [];
     const hasSer = presets.some((p) => p.label.toLowerCase().includes("ser"));
     const sackPreset = presets.find((p) =>
-      p.label.toLowerCase().includes("sack")
+      p.label.toLowerCase().includes("sack"),
     );
 
     const entries = [{ label: "1 kg", qty: 1 }];
@@ -84,24 +88,26 @@ export default function ProductModal({ item, isOpen, onClose }) {
       ...entry,
       price: pricePerKg * entry.qty,
     }));
-  }, [item]);
+  }, [item, convertPrice]);
 
-  // Determine if price trend is up or down
   const isUpTrend = priceStats?.change >= 0;
 
   if (!isOpen || !item) return null;
 
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
+  const convertedChange = Math.round(Math.abs(convertPrice(item.change)));
 
-  const formatPrice = (price) => {
-    if (price >= 1000) return price.toLocaleString();
-    return price % 1 === 0 ? price : price.toFixed(2);
+  const formatDisplayPrice = (price) => {
+    if (currentCurrency.code === "AFN") {
+      return formatPrice(price, { showSymbol: false });
+    }
+    return formatPrice(price, { showSymbol: true });
   };
 
   const formatAxisPrice = (price) => {
-    if (price >= 1000) return `${(price / 1000).toFixed(1)}k`;
-    return price.toFixed(0);
+    if (price >= 1000) return `${Math.round(price / 1000)}k`;
+    return Math.round(price).toString();
   };
 
   return (
@@ -138,7 +144,6 @@ export default function ProductModal({ item, isOpen, onClose }) {
                   fill
                   className="object-cover"
                 />
-                {/* Category Badge */}
                 <div className="absolute left-3 top-3">
                   <span className="inline-flex items-center rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm backdrop-blur-sm sm:text-xs">
                     {item.category}
@@ -162,7 +167,6 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     </p>
                   )}
 
-                  {/* Source */}
                   <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <MapPinIcon className="h-4 w-4" />
                     <span>{item.source?.name || "Unknown Source"}</span>
@@ -176,10 +180,12 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       Current Price
                     </p>
                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
-                      {formatPrice(item.price)}
-                      <span className="ml-1 text-base font-normal text-slate-500">
-                        AFN
-                      </span>
+                      {formatDisplayPrice(item.price)}
+                      {currentCurrency.code === "AFN" && (
+                        <span className="ml-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                          AFN
+                        </span>
+                      )}
                     </p>
                   </div>
 
@@ -202,7 +208,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     )}
                     <span className="text-sm font-bold sm:text-base">
                       {isIncrease ? "+" : ""}
-                      {formatPrice(item.change)}
+                      {convertedChange.toLocaleString()} {currentCurrency.code}
                     </span>
                     <span className="text-xs opacity-75">today</span>
                   </div>
@@ -223,7 +229,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                             {entry.label}
                           </p>
                           <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                            {formatPrice(entry.price)} AFN
+                            {formatPrice(entry.price)}
                           </p>
                         </div>
                       ))}
@@ -240,7 +246,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                 <div className="flex items-center gap-2">
                   <ChartBarIcon className="h-5 w-5 text-primary" />
                   <h3 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
-                    Price History
+                    Price History ({currentCurrency.code})
                   </h3>
                   {priceStats && (
                     <span
@@ -307,7 +313,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                         Avg
                       </p>
                       <p className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
-                        {formatPrice(Math.round(priceStats.avg))}
+                        {formatPrice(priceStats.avg)}
                       </p>
                     </div>
                   </div>
@@ -321,7 +327,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       }`}
                     >
                       {isUpTrend ? "+" : ""}
-                      {formatPrice(priceStats.change)} AFN
+                      {formatPrice(Math.abs(priceStats.change))}
                     </p>
                   </div>
                 </div>
@@ -335,13 +341,41 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
                   >
                     <defs>
-                      <linearGradient id="priceGradientUp" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#f43f5e" stopOpacity={0} />
+                      <linearGradient
+                        id="priceGradientUp"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#f43f5e"
+                          stopOpacity={0}
+                        />
                       </linearGradient>
-                      <linearGradient id="priceGradientDown" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#10b981" stopOpacity={0.3} />
-                        <stop offset="100%" stopColor="#10b981" stopOpacity={0} />
+                      <linearGradient
+                        id="priceGradientDown"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="0%"
+                          stopColor="#10b981"
+                          stopOpacity={0.3}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor="#10b981"
+                          stopOpacity={0}
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
@@ -367,7 +401,12 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       width={50}
                     />
                     <Tooltip
-                      content={<CustomTooltip />}
+                      content={
+                        <CustomTooltip
+                          currency={currentCurrency}
+                          formatPrice={formatPrice}
+                        />
+                      }
                       cursor={{
                         stroke: "#94a3b8",
                         strokeWidth: 1,
@@ -384,10 +423,14 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     )}
                     <Area
                       type="monotone"
-                      dataKey="price"
+                      dataKey="convertedPrice"
                       stroke={isUpTrend ? "#f43f5e" : "#10b981"}
                       strokeWidth={2.5}
-                      fill={isUpTrend ? "url(#priceGradientUp)" : "url(#priceGradientDown)"}
+                      fill={
+                        isUpTrend
+                          ? "url(#priceGradientUp)"
+                          : "url(#priceGradientDown)"
+                      }
                       dot={false}
                       activeDot={{
                         r: 6,
@@ -404,9 +447,9 @@ export default function ProductModal({ item, isOpen, onClose }) {
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-500/10">
                 <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-500" />
                 <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-300">
-                  Prices are updated daily. Historical data shows price trends to
-                  help you make informed decisions. Red indicates price increase
-                  (cost more), green indicates decrease (savings).
+                  Prices are updated daily. Historical data shows price trends
+                  to help you make informed decisions. Red indicates price
+                  increase (cost more), green indicates decrease (savings).
                 </p>
               </div>
             </div>
@@ -418,16 +461,11 @@ export default function ProductModal({ item, isOpen, onClose }) {
 }
 
 // Custom Tooltip Component
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, currency, formatPrice }) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
-  const price = data.price;
-
-  const formatPrice = (p) => {
-    if (p >= 1000) return p.toLocaleString();
-    return p % 1 === 0 ? p : p.toFixed(2);
-  };
+  const price = data.convertedPrice;
 
   return (
     <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg dark:border-slate-700 dark:bg-slate-800">
@@ -440,8 +478,10 @@ function CustomTooltip({ active, payload, label }) {
         })}
       </p>
       <p className="mt-1 text-base font-bold text-slate-900 dark:text-white">
-        {formatPrice(price)}{" "}
-        <span className="text-xs font-normal text-slate-500">AFN</span>
+        {Math.round(price).toLocaleString()}{" "}
+        <span className="text-xs font-normal text-slate-500">
+          {currency.code}
+        </span>
       </p>
     </div>
   );

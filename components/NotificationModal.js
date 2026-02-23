@@ -15,6 +15,7 @@ import {
   CubeIcon,
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
+import { useCurrency } from "@/lib/context/CurrencyContext";
 
 const categoryIcons = {
   essentials: ShoppingBagIcon,
@@ -25,6 +26,7 @@ const categoryIcons = {
 };
 
 export default function NotificationModal({ isOpen, onClose }) {
+  const { formatPrice } = useCurrency();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all, increases, decreases
@@ -88,17 +90,8 @@ export default function NotificationModal({ isOpen, onClose }) {
     }
   };
 
-  const formatPrice = (price) => {
-    if (typeof price !== "number") return price;
-    if (price >= 1000) return price.toLocaleString();
-    return price % 1 === 0 ? price : price.toFixed(2);
-  };
-
-  const formatChange = (change) => {
-    const absChange = Math.abs(change);
-    if (absChange >= 1000) return absChange.toLocaleString();
-    return absChange % 1 === 0 ? absChange : absChange.toFixed(2);
-  };
+  const formatChange = (change) =>
+    formatPrice(Math.abs(change), { showSymbol: false });
 
   if (!isOpen) return null;
 
@@ -328,7 +321,7 @@ function NotificationItem({ notification, formatPrice, formatChange }) {
           </span>
           <span className="text-slate-400">-&gt;</span>
           <span className="font-semibold text-slate-700 dark:text-slate-200">
-            {formatPrice(notification.currentPrice)} AFN
+            {formatPrice(notification.currentPrice)}
           </span>
           <span
             className={`ml-1 ${
