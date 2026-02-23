@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +16,7 @@ import {
   XMarkIcon,
   ArrowLeftIcon,
   NewspaperIcon,
+  ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/outline";
 
 const navigation = [
@@ -29,11 +31,39 @@ const navigation = [
 
 export default function AdminSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (href) => {
     if (href === "/admin") return pathname === "/admin";
     return pathname.startsWith(href);
+  };
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+
+    try {
+      const res = await fetch("/api/admin/auth/logout", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        router.push("/admin/login");
+        router.refresh();
+      } else {
+        alert("Failed to logout. Please try again.");
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -112,13 +142,24 @@ export default function AdminSidebar() {
 
           {/* Footer */}
           <div className="border-t border-slate-200 p-4 dark:border-slate-700">
+            {/* Back to Site */}
             <Link
               href="/"
               className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
             >
-              <ArrowLeftIcon className="h-5 w-5" />
+              <ArrowLeftIcon className="h-5 w-5 text-slate-400" />
               Back to Site
             </Link>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-600 hover:bg-rose-50 disabled:opacity-50 dark:text-rose-400 dark:hover:bg-rose-900/20"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+              {loggingOut ? "Logging out..." : "Logout"}
+            </button>
           </div>
         </div>
       </div>

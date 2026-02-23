@@ -12,6 +12,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 export default function EditProductPage({ params }) {
   const { id } = use(params);
@@ -759,15 +760,20 @@ export default function EditProductPage({ params }) {
               <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">
                 Image Preview
               </h3>
-              <div className="aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700">
-                <img
-                  src={imagePreviewUrl || formData.image}
-                  alt={formData.name}
-                  className="h-full w-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                  }}
-                />
+              <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700">
+                {(imagePreviewUrl || formData.image) && (
+                  <Image
+                    src={imagePreviewUrl || formData.image}
+                    alt={formData.name || "Image preview"}
+                    fill
+                    className="object-cover"
+                    sizes="100%"
+                    unoptimized
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                )}
               </div>
             </div>
           )}
