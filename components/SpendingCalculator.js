@@ -1,7 +1,14 @@
+// components/SpendingCalculator.jsx
 "use client";
 
-import { useState, useMemo, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
-import { items } from "@/lib/data";
+import {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   MagnifyingGlassIcon,
   PlusIcon,
@@ -13,8 +20,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 const SpendingCalculator = forwardRef(function SpendingCalculator(
-  { isOpen, onClose },
-  ref
+  { items = [], isOpen, onClose },
+  ref,
 ) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -35,10 +42,10 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     if (!searchQuery.trim()) return [];
     return items
       .filter((item) =>
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
       .slice(0, 6);
-  }, [searchQuery]);
+  }, [items, searchQuery]);
 
   // Calculate total
   const total = useMemo(() => {
@@ -69,7 +76,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const getDefaultQuantity = (item) => {
     const config = item?.calculator;
     if (!config) return 1;
-    return config.defaultQuantity ?? config.min ?? 1;
+    return config.defaultQuantity ?? config.baseQuantity ?? config.min ?? 1;
   };
 
   const handleSelectItem = (item) => {
@@ -101,7 +108,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
       newBasket[existingIndex].quantity += quantityToAdd;
       newBasket[existingIndex].totalPrice = calculatePrice(
         item,
-        newBasket[existingIndex].quantity
+        newBasket[existingIndex].quantity,
       );
       setBasket(newBasket);
     } else {
@@ -137,7 +144,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     if (!item) return;
 
     const config = item.calculator;
-    if (newQuantity < config.min) {
+    if (!config || newQuantity < config.min) {
       handleRemoveFromBasket(itemId);
       return;
     }
@@ -152,7 +159,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
           };
         }
         return basketItem;
-      })
+      }),
     );
   };
 
@@ -166,7 +173,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   };
 
   const formatQuantity = (qty, step) => {
-    if (step >= 1 || qty % 1 === 0) return qty;
+    if (!step || step >= 1 || qty % 1 === 0) return qty;
     return qty.toFixed(2);
   };
 
@@ -284,26 +291,28 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               </div>
 
               {/* Quick Presets */}
-              <div className="mt-4">
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Quick Select
-                </label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {calcConfig.presets.map((preset, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setQuantityValue(preset.value)}
-                      className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                        quantity === preset.value
-                          ? "bg-primary text-white shadow-md"
-                          : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-primary/50 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
+              {calcConfig.presets && calcConfig.presets.length > 0 && (
+                <div className="mt-4">
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+                    Quick Select
+                  </label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {calcConfig.presets.map((preset, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setQuantityValue(preset.value)}
+                        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+                          quantity === preset.value
+                            ? "bg-primary text-white shadow-md"
+                            : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-primary/50 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
+                        }`}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Custom Quantity Input */}
               <div className="mt-4">
@@ -315,7 +324,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     <button
                       onClick={() =>
                         setQuantityValue(
-                          Math.max(calcConfig.min, quantity - calcConfig.step)
+                          Math.max(calcConfig.min, quantity - calcConfig.step),
                         )
                       }
                       className="rounded-l-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
@@ -351,7 +360,9 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       className="w-full border-x border-slate-200 bg-transparent py-2 text-center text-sm font-semibold text-slate-900 focus:outline-none dark:border-slate-600 dark:text-white"
                     />
                     <button
-                      onClick={() => setQuantityValue(quantity + calcConfig.step)}
+                      onClick={() =>
+                        setQuantityValue(quantity + calcConfig.step)
+                      }
                       className="rounded-r-xl p-2.5 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-600"
                     >
                       <PlusIcon className="h-4 w-4" />
@@ -367,11 +378,14 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200/50 pt-4">
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Subtotal ({formatQuantity(quantity, calcConfig.step)} {calcConfig.displayUnit})
+                    Subtotal ({formatQuantity(quantity, calcConfig.step)}{" "}
+                    {calcConfig.displayUnit})
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
                     {formatPrice(calculatePrice(selectedItem, quantity))}{" "}
-                    <span className="text-sm font-normal text-slate-500">AFN</span>
+                    <span className="text-sm font-normal text-slate-500">
+                      AFN
+                    </span>
                   </p>
                 </div>
                 <button
@@ -403,7 +417,11 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               </div>
 
               {basket.map((item) => {
-                const config = item.calculator;
+                const config = item.calculator || {
+                  min: 1,
+                  step: 1,
+                  displayUnit: "unit",
+                };
                 return (
                   <div
                     key={item.id}
@@ -414,15 +432,18 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                         {item.name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {formatQuantity(item.quantity, config.step)} {config.displayUnit}
+                        {formatQuantity(item.quantity, config.step)}{" "}
+                        {config.displayUnit}
                       </p>
                     </div>
 
-                    {/* Quick Quantity Adjust */}
                     <div className="flex items-center gap-1 rounded-lg bg-white px-1 py-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-600 dark:ring-slate-500">
                       <button
                         onClick={() =>
-                          handleUpdateQuantity(item.id, item.quantity - config.step)
+                          handleUpdateQuantity(
+                            item.id,
+                            item.quantity - config.step,
+                          )
                         }
                         className="rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                       >
@@ -433,7 +454,10 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       </span>
                       <button
                         onClick={() =>
-                          handleUpdateQuantity(item.id, item.quantity + config.step)
+                          handleUpdateQuantity(
+                            item.id,
+                            item.quantity + config.step,
+                          )
                         }
                         className="rounded p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
                       >
@@ -441,7 +465,6 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       </button>
                     </div>
 
-                    {/* Item Total */}
                     <div className="w-20 text-right">
                       <p className="text-sm font-semibold text-slate-900 dark:text-white">
                         {formatPrice(item.totalPrice)}
@@ -468,7 +491,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 Your list is empty
               </p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Search and add items to calculate your spending
+                Search and add items to calculate
               </p>
             </div>
           )}
@@ -484,7 +507,9 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
                   {formatPrice(total)}{" "}
-                  <span className="text-sm font-normal text-slate-500">AFN</span>
+                  <span className="text-sm font-normal text-slate-500">
+                    AFN
+                  </span>
                 </p>
               </div>
               <div className="text-right">
@@ -507,7 +532,6 @@ SpendingCalculator.displayName = "SpendingCalculator";
 
 export default SpendingCalculator;
 
-// Floating Button Component for Mobile
 export function CalculatorFAB({ onClick, itemCount }) {
   return (
     <button

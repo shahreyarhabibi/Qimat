@@ -1,9 +1,8 @@
+// components/FilterBar.jsx
 "use client";
 
 import { useState } from "react";
-import { categories } from "@/lib/data";
 import {
-  MagnifyingGlassIcon,
   ShoppingBagIcon,
   DevicePhoneMobileIcon,
   CurrencyDollarIcon,
@@ -14,6 +13,7 @@ import {
   ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 
+// Map category slugs to icons
 const categoryIcons = {
   essentials: ShoppingBagIcon,
   phones: DevicePhoneMobileIcon,
@@ -22,7 +22,11 @@ const categoryIcons = {
   metals: CubeIcon,
 };
 
-export default function FilterBar({ selectedCategory, setSelectedCategory }) {
+export default function FilterBar({
+  categories = [], // Now comes from database via props
+  selectedCategory,
+  setSelectedCategory,
+}) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSelect = (categoryId) => {
@@ -30,7 +34,9 @@ export default function FilterBar({ selectedCategory, setSelectedCategory }) {
     setIsExpanded(false);
   };
 
-  const selectedCategoryData = categories.find((c) => c.id === selectedCategory);
+  const selectedCategoryData = categories.find(
+    (c) => c.id === selectedCategory,
+  );
 
   return (
     <div className="w-full">
@@ -43,9 +49,9 @@ export default function FilterBar({ selectedCategory, setSelectedCategory }) {
             isActive={selectedCategory === null}
             onClick={() => handleSelect(null)}
           />
-          
+
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700" />
-          
+
           {categories.map((cat) => {
             const Icon = categoryIcons[cat.id] || Squares2X2Icon;
             return (
@@ -71,7 +77,8 @@ export default function FilterBar({ selectedCategory, setSelectedCategory }) {
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
               {selectedCategory ? (
                 (() => {
-                  const Icon = categoryIcons[selectedCategory] || Squares2X2Icon;
+                  const Icon =
+                    categoryIcons[selectedCategory] || Squares2X2Icon;
                   return <Icon className="h-5 w-5 text-primary" />;
                 })()
               ) : (
@@ -99,7 +106,7 @@ export default function FilterBar({ selectedCategory, setSelectedCategory }) {
           className={`mt-2 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200/50 transition-all duration-300 dark:bg-slate-800 dark:ring-slate-700/50 ${
             isExpanded
               ? "max-h-96 opacity-100"
-              : "max-h-0 opacity-0 pointer-events-none"
+              : "pointer-events-none max-h-0 opacity-0"
           }`}
         >
           <div className="p-2">
@@ -174,7 +181,9 @@ function MobileFilterItem({ label, icon: Icon, isActive, onClick }) {
           : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50"
       }`}
     >
-      <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`} />
+      <Icon
+        className={`h-5 w-5 ${isActive ? "text-white" : "text-slate-400"}`}
+      />
       <span className="flex-1 text-left">{label}</span>
       {isActive && (
         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/20">

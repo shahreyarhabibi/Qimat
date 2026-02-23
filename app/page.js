@@ -1,15 +1,19 @@
+// app/page.js
 "use client";
 
 import { useState, useMemo, useRef } from "react";
-import { items } from "@/lib/data";
+import { useProducts } from "@/lib/hooks/useProducts";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
 import PriceCard from "@/components/PriceCard";
 import ProductModal from "@/components/ProductModal";
-import SpendingCalculator, { CalculatorFAB } from "@/components/SpendingCalculator";
+import SpendingCalculator, {
+  CalculatorFAB,
+} from "@/components/SpendingCalculator";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 export default function Home() {
+  const { items, categories, loading, error } = useProducts();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [notifications] = useState(true);
@@ -28,7 +32,7 @@ export default function Home() {
         !selectedCategory || item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [items, searchQuery, selectedCategory]);
 
   const handleOpenModal = (item) => {
     setSelectedItem(item);
@@ -45,52 +49,98 @@ export default function Home() {
     mobileCalcRef.current?.addItem(item);
   };
 
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        {/* Pass empty items during loading */}
+        <TopNav
+          items={[]}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          showNotificationDot={false}
+        />
+        <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
+          <div className="flex gap-8">
+            <div className="min-w-0 flex-1">
+              {/* Skeleton filter */}
+              <div className="mb-8 h-14 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+
+              {/* Skeleton cards */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-72 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Skeleton calculator */}
+            <div className="hidden w-85 shrink-0 lg:block xl:w-95">
+              <div className="h-[500px] animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <TopNav
+          items={[]}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          showNotificationDot={false}
+        />
+        <main className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/30">
+              <span className="text-3xl">⚠️</span>
+            </div>
+            <h2 className="mt-4 text-xl font-semibold text-slate-900 dark:text-white">
+              Failed to load prices
+            </h2>
+            <p className="mt-2 text-slate-500 dark:text-slate-400">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn btn-primary mt-6"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      {/* Top Navigation */}
+      {/* Pass items to TopNav for ticker */}
       <TopNav
+        items={items}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
         showNotificationDot={notifications}
       />
 
-      {/* Main Content */}
-      <main className="mx-auto max-w-[1400px] px-6 py-8 lg:px-8">
+      <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
         <div className="flex gap-8">
-          {/* Left Content Area */}
           <div className="min-w-0 flex-1">
-            {/* Page Header
-            <div className="mb-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
-                    {selectedCategory
-                      ? selectedCategory.charAt(0).toUpperCase() +
-                        selectedCategory.slice(1)
-                      : "Today's Prices"}
-                  </h1>
-                  <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                    Track real-time prices across different categories
-                  </p>
-                </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  <span className="font-semibold text-slate-900 dark:text-white">
-                    {filteredItems.length}
-                  </span>{" "}
-                  items found
-                </p>
-              </div>
-            </div> */}
-
-            {/* Floating Filter Bar */}
+            {/* Filter Bar - pass categories from database */}
             <div className="mb-8">
               <FilterBar
+                categories={categories}
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
               />
             </div>
 
-            {/* Product Grid - 3 Columns Max */}
+            {/* Product Grid */}
             {filteredItems.length > 0 ? (
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredItems.map((item) => (
@@ -111,11 +161,13 @@ export default function Home() {
                   No items found
                 </p>
                 <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                  Try adjusting your search or filter to find what you&apos;re
-                  looking for.
+                  Try adjusting your search or filter.
                 </p>
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSearchQuery("");
+                  }}
                   className="btn btn-primary btn-sm mt-6 rounded-full px-6"
                 >
                   View All Items
@@ -124,25 +176,32 @@ export default function Home() {
             )}
           </div>
 
-          {/* Right Sidebar - Spending Calculator (Desktop) */}
-          <div className="hidden w-[340px] shrink-0 lg:block xl:w-[380px]">
+          {/* Desktop Calculator - pass items for search */}
+          <div className="hidden w-85 shrink-0 lg:block xl:w-95">
             <div className="sticky top-32">
-              <SpendingCalculator ref={desktopCalcRef} isOpen={true} onClose={() => {}} />
+              <SpendingCalculator
+                ref={desktopCalcRef}
+                items={items}
+                isOpen={true}
+                onClose={() => {}}
+              />
             </div>
           </div>
         </div>
       </main>
 
-      {/* Mobile Calculator FAB & Sheet */}
+      {/* Mobile Calculator */}
       <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
       <div className="lg:hidden">
         <SpendingCalculator
           ref={mobileCalcRef}
+          items={items}
           isOpen={calculatorOpen}
           onClose={() => setCalculatorOpen(false)}
         />
       </div>
 
+      {/* Product Modal */}
       <ProductModal
         item={selectedItem}
         isOpen={isModalOpen}

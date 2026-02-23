@@ -1,3 +1,4 @@
+// components/TopNav.jsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -7,21 +8,31 @@ import {
   SunIcon,
   MoonIcon,
 } from "@heroicons/react/24/outline";
-import { items } from "@/lib/data";
 
-// Get important items by ID from data.js
-const TICKER_ITEM_IDS = [15, 21, 4, 26, 9, 16]; // USD, Petrol, Flour, Gold, iPhone, EUR
+// Ticker items by slug (these will be filtered from the items prop)
+const TICKER_SLUGS = [
+  "usd",
+  "petrol",
+  "flour",
+  "gold-24k",
+  "iphone-16-pro-max",
+  "euro",
+  "haji-aziz-rice",
+  "diesel",
+];
 
 export default function TopNav({
+  items = [], // Items now come from props (database)
   searchQuery,
   setSearchQuery,
   showNotificationDot,
 }) {
-  const [darkMode, setDarkMode] = useState(
-    () =>
-      typeof document !== "undefined" &&
-      document.documentElement.classList.contains("dark"),
-  );
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize dark mode on mount
+  useEffect(() => {
+    setDarkMode(document.documentElement.classList.contains("dark"));
+  }, []);
 
   const toggleDarkMode = () => {
     if (darkMode) {
@@ -34,14 +45,26 @@ export default function TopNav({
     setDarkMode(!darkMode);
   };
 
-  // Get ticker items from data.js by ID
-  const tickerData = items.filter((item) => TICKER_ITEM_IDS.includes(item.id));
+  // Get ticker items from items prop by slug
+  // If slug doesn't exist, try matching by name
+  const tickerData = items.filter((item) => {
+    const itemSlug = item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
+    return TICKER_SLUGS.includes(itemSlug);
+  });
+
+  // If we don't have enough ticker items, just use the first 6 items
+  const displayTickerData =
+    tickerData.length >= 4 ? tickerData : items.slice(0, 6);
 
   return (
     <header className="sticky top-0 z-30">
       {/* Ticker Bar */}
-      <div className="w-full bg-slate-900 dark:bg-slate-950 overflow-hidden">
-        <TickerStrip items={tickerData} />
+      <div className="w-full overflow-hidden bg-slate-900 dark:bg-slate-950">
+        {displayTickerData.length > 0 ? (
+          <TickerStrip items={displayTickerData} />
+        ) : (
+          <TickerSkeleton />
+        )}
       </div>
 
       {/* Main Navbar */}
@@ -64,8 +87,8 @@ export default function TopNav({
               <input
                 type="text"
                 placeholder="Search items..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchQuery || ""}
+                onChange={(e) => setSearchQuery?.(e.target.value)}
                 className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
               />
             </div>
@@ -83,23 +106,12 @@ export default function TopNav({
 
 function TickerStrip({ items }) {
   const tickerRef = useRef(null);
-  const [contentWidth, setContentWidth] = useState(0);
-
-  useEffect(() => {
-    if (tickerRef.current) {
-      // Get the width of one set of items
-      const firstSet = tickerRef.current.querySelector('.ticker-set');
-      if (firstSet) {
-        setContentWidth(firstSet.offsetWidth);
-      }
-    }
-  }, [items]);
 
   // Create enough copies to ensure seamless loop
   const renderTickerContent = () => (
     <div className="ticker-set flex items-center gap-8 px-4">
-      {items.map((item) => (
-        <TickerItem key={item.id} item={item} />
+      {items.map((item, index) => (
+        <TickerItem key={`${item.id}-${index}`} item={item} />
       ))}
     </div>
   );
@@ -110,7 +122,7 @@ function TickerStrip({ items }) {
         ref={tickerRef}
         className="ticker-track flex"
         style={{
-          animation: 'ticker 25s linear infinite',
+          animation: "ticker 25s linear infinite",
         }}
       >
         {/* Render multiple copies for seamless loop */}
@@ -119,6 +131,20 @@ function TickerStrip({ items }) {
         {renderTickerContent()}
         {renderTickerContent()}
       </div>
+    </div>
+  );
+}
+
+function TickerSkeleton() {
+  return (
+    <div className="flex items-center gap-8 px-4 py-2">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <div className="h-4 w-20 animate-pulse rounded bg-slate-700" />
+          <div className="h-4 w-16 animate-pulse rounded bg-slate-700" />
+          <div className="h-4 w-12 animate-pulse rounded bg-slate-700" />
+        </div>
+      ))}
     </div>
   );
 }
@@ -135,8 +161,14 @@ function TickerItem({ item }) {
     return absChange % 1 === 0 ? absChange : absChange.toFixed(1);
   };
 
+  const formatPrice = (price) => {
+    if (typeof price !== "number") return price;
+    if (price >= 1000) return price.toLocaleString();
+    return price % 1 === 0 ? price : price.toFixed(2);
+  };
+
   return (
-    <div className="flex items-center gap-2 shrink-0">
+    <div className="flex shrink-0 items-center gap-2">
       {/* Item Name & Unit */}
       <div className="flex items-center gap-1.5">
         <span className="text-sm font-medium text-slate-300">{item.name}</span>
@@ -147,9 +179,7 @@ function TickerItem({ item }) {
 
       {/* Price */}
       <span className="text-sm font-bold text-white">
-        {typeof item.price === "number"
-          ? item.price.toLocaleString()
-          : item.price}
+        {formatPrice(item.price)}
         <span className="ml-1 text-xs font-normal text-slate-400">AFN</span>
       </span>
 
@@ -168,7 +198,7 @@ function TickerItem({ item }) {
       </span>
 
       {/* Separator */}
-      <span className="text-slate-600 ml-4">|</span>
+      <span className="ml-4 text-slate-600">|</span>
     </div>
   );
 }
