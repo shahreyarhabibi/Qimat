@@ -8,6 +8,7 @@ import {
   SunIcon,
   MoonIcon,
 } from "@heroicons/react/24/outline";
+import NotificationModal from "./NotificationModal";
 
 // Ticker items by slug (these will be filtered from the items prop)
 const TICKER_SLUGS = [
@@ -22,7 +23,7 @@ const TICKER_SLUGS = [
 ];
 
 export default function TopNav({
-  items = [], // Items now come from props (database)
+  items = [],
   searchQuery,
   setSearchQuery,
   showNotificationDot,
@@ -32,6 +33,8 @@ export default function TopNav({
     return document.documentElement.classList.contains("dark");
   });
   const [tickerProductIds, setTickerProductIds] = useState([]);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
@@ -47,6 +50,7 @@ export default function TopNav({
     });
   };
 
+  // Fetch ticker config
   useEffect(() => {
     let isMounted = true;
 
@@ -73,6 +77,26 @@ export default function TopNav({
     };
   }, []);
 
+  // Fetch notification count
+  useEffect(() => {
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await fetch("/api/notifications?days=1&limit=100");
+        const data = await res.json();
+        if (data.success) {
+          setNotificationCount(data.data.todayCount);
+        }
+      } catch (error) {
+        console.error("Error fetching notification count:", error);
+      }
+    };
+
+    fetchNotificationCount();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchNotificationCount, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const displayTickerData = useMemo(() => {
     if (tickerProductIds.length > 0) {
       const itemsById = new Map(items.map((item) => [String(item.id), item]));
@@ -87,7 +111,8 @@ export default function TopNav({
 
     // Fallback: previous hardcoded ticker behavior.
     const fallbackTicker = items.filter((item) => {
-      const itemSlug = item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
+      const itemSlug =
+        item.slug || item.name?.toLowerCase().replace(/\s+/g, "-");
       return TICKER_SLUGS.includes(itemSlug);
     });
 
@@ -95,57 +120,68 @@ export default function TopNav({
   }, [items, tickerProductIds]);
 
   return (
-    <header className="sticky top-0 z-30">
-      {/* Ticker Bar */}
-      <div className="w-full overflow-hidden bg-slate-900 dark:bg-slate-950">
-        {displayTickerData.length > 0 ? (
-          <TickerStrip items={displayTickerData} />
-        ) : (
-          <TickerSkeleton />
-        )}
-      </div>
+    <>
+      <header className="sticky top-0 z-30">
+        {/* Ticker Bar */}
+        <div className="w-full overflow-hidden bg-slate-900 dark:bg-slate-950">
+          {displayTickerData.length > 0 ? (
+            <TickerStrip items={displayTickerData} />
+          ) : (
+            <TickerSkeleton />
+          )}
+        </div>
 
-      {/* Main Navbar */}
-      <div className="border-b border-slate-200/50 bg-slate-50/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
-        <div className="mx-auto flex max-w-[90%] items-center justify-between gap-4 px-4 py-3">
-          {/* Logo */}
-          <div className="shrink-0">
-            <h1 className="text-xl font-bold tracking-tight text-primary">
-              Qimat
-            </h1>
-            <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-              Real-time market prices
-            </p>
-          </div>
+        {/* Main Navbar */}
+        <div className="border-b border-slate-200/50 bg-slate-50/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-900/90">
+          <div className="mx-auto flex max-w-[90%] items-center justify-between gap-4 px-4 py-3">
+            {/* Logo */}
+            <div className="shrink-0">
+              <h1 className="text-xl font-bold tracking-tight text-primary">
+                Qimat
+              </h1>
+              <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
+                Real-time market prices
+              </p>
+            </div>
 
-          {/* Search and Actions */}
-          <div className="flex flex-1 items-center justify-end gap-2 md:gap-3">
-            <div className="relative min-w-0 flex-1 md:max-w-sm lg:max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search items..."
-                value={searchQuery || ""}
-                onChange={(e) => setSearchQuery?.(e.target.value)}
-                className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+            {/* Search and Actions */}
+            <div className="flex flex-1 items-center justify-end gap-2 md:gap-3">
+              <div className="relative hidden min-w-0 flex-1 md:block md:max-w-sm lg:max-w-md">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search items..."
+                  value={searchQuery || ""}
+                  onChange={(e) => setSearchQuery?.(e.target.value)}
+                  className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+              <HeaderActions
+                darkMode={darkMode}
+                notificationCount={notificationCount}
+                showNotificationDot={
+                  showNotificationDot || notificationCount > 0
+                }
+                toggleDarkMode={toggleDarkMode}
+                onNotificationClick={() => setNotificationOpen(true)}
               />
             </div>
-            <HeaderActions
-              darkMode={darkMode}
-              showNotificationDot={showNotificationDot}
-              toggleDarkMode={toggleDarkMode}
-            />
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Notification Modal */}
+      <NotificationModal
+        isOpen={notificationOpen}
+        onClose={() => setNotificationOpen(false)}
+      />
+    </>
   );
 }
 
 function TickerStrip({ items }) {
   const tickerRef = useRef(null);
 
-  // Create enough copies to ensure seamless loop
   const renderTickerContent = () => (
     <div className="ticker-set flex items-center gap-8 px-4">
       {items.map((item, index) => (
@@ -163,7 +199,6 @@ function TickerStrip({ items }) {
           animation: "ticker 25s linear infinite",
         }}
       >
-        {/* Render multiple copies for seamless loop */}
         {renderTickerContent()}
         {renderTickerContent()}
         {renderTickerContent()}
@@ -207,7 +242,6 @@ function TickerItem({ item }) {
 
   return (
     <div className="flex shrink-0 items-center gap-2">
-      {/* Item Name & Unit */}
       <div className="flex items-center gap-1.5">
         <span className="text-sm font-medium text-slate-300">{item.name}</span>
         {item.unit && (
@@ -215,13 +249,11 @@ function TickerItem({ item }) {
         )}
       </div>
 
-      {/* Price */}
       <span className="text-sm font-bold text-white">
         {formatPrice(item.price)}
         <span className="ml-1 text-xs font-normal text-slate-400">AFN</span>
       </span>
 
-      {/* Change Badge */}
       <span
         className={`flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-xs font-semibold ${
           isUp
@@ -235,13 +267,18 @@ function TickerItem({ item }) {
         {formatChange(item.change)} AFN
       </span>
 
-      {/* Separator */}
       <span className="ml-4 text-slate-600">|</span>
     </div>
   );
 }
 
-function HeaderActions({ darkMode, showNotificationDot, toggleDarkMode }) {
+function HeaderActions({
+  darkMode,
+  notificationCount,
+  showNotificationDot,
+  toggleDarkMode,
+  onNotificationClick,
+}) {
   return (
     <div className="flex shrink-0 items-center gap-1">
       <button
@@ -257,12 +294,15 @@ function HeaderActions({ darkMode, showNotificationDot, toggleDarkMode }) {
       </button>
 
       <button
+        onClick={onNotificationClick}
         className="relative rounded-xl p-2.5 transition hover:bg-white hover:shadow-sm dark:hover:bg-slate-800"
         aria-label="Notifications"
       >
         <BellIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
         {showNotificationDot && (
-          <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-secondary ring-2 ring-slate-50 dark:ring-slate-900"></span>
+          <span className="absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white ring-2 ring-slate-50 dark:ring-slate-900">
+            {notificationCount > 9 ? "9+" : notificationCount || "•"}
+          </span>
         )}
       </button>
     </div>

@@ -58,7 +58,6 @@ export default function Home() {
           items={[]}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          showNotificationDot={false}
         />
         <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
           <div className="flex gap-8">
@@ -138,6 +137,17 @@ export default function Home() {
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
               />
+
+              <div className="relative mt-4 md:hidden">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+                />
+              </div>
             </div>
 
             {/* Product Grid */}

@@ -207,9 +207,16 @@ export default function ProductsPage() {
                         </div>
                       )}
                       <div>
-                        <p className="font-medium text-slate-900 dark:text-white">
-                          {product.name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-slate-900 dark:text-white">
+                            {product.name}
+                          </p>
+                          {product.is_featured === 1 && (
+                            <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                              Featured
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500">{product.unit}</p>
                       </div>
                     </div>

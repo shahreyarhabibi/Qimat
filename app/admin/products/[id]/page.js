@@ -34,6 +34,7 @@ export default function EditProductPage({ params }) {
     unit: "",
     image: "",
     isActive: true,
+    isFeatured: false,
     calculator: {
       baseQuantity: 1,
       displayUnit: "kg",
@@ -80,6 +81,7 @@ export default function EditProductPage({ params }) {
           unit: product.unit || "",
           image: product.image_path || "",
           isActive: product.is_active === 1,
+          isFeatured: product.is_featured === 1,
           calculator: product.calculator || {
             baseQuantity: 1,
             displayUnit: "kg",
@@ -300,19 +302,34 @@ export default function EditProductPage({ params }) {
             {formData.name || "Loading..."}
           </p>
         </div>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={formData.isActive}
-            onChange={(e) =>
-              setFormData({ ...formData, isActive: e.target.checked })
-            }
-            className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
-          />
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            Active
-          </span>
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={formData.isActive}
+              onChange={(e) =>
+                setFormData({ ...formData, isActive: e.target.checked })
+              }
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+            />
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Active
+            </span>
+          </label>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={formData.isFeatured}
+              onChange={(e) =>
+                setFormData({ ...formData, isFeatured: e.target.checked })
+              }
+              className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+            />
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Featured
+            </span>
+          </label>
+        </div>
       </div>
 
       {/* Message */}

@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "db:migrate:featured": "node --env-file=.env.local scripts/migrate-add-featured-column.js",
     "db:seed": "node --env-file=.env.local scripts/seed.js",
     "db:admin-auth": "node --env-file=.env.local scripts/setup-admin-credentials.js"
   },

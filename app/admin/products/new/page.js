@@ -10,6 +10,7 @@ import {
   TrashIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -30,6 +31,7 @@ export default function NewProductPage() {
     price: "",
     priceDate: new Date().toISOString().split("T")[0],
     isActive: true,
+    isFeatured: false,
     calculator: {
       baseQuantity: 1,
       displayUnit: "kg",
@@ -280,6 +282,23 @@ export default function NewProductPage() {
               />
             </div>
 
+            <div className="sm:col-span-2">
+              <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+                <input
+                  type="checkbox"
+                  checked={formData.isFeatured}
+                  onChange={(e) =>
+                    setFormData({ ...formData, isFeatured: e.target.checked })
+                  }
+                  className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                />
+                Featured Product
+              </label>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Featured products are pinned at the top of the public list.
+              </p>
+            </div>
+
             <div>
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Product Image
@@ -293,11 +312,16 @@ export default function NewProductPage() {
                 />
                 {imagePreviewUrl ? (
                   <div className="rounded-xl bg-slate-50 p-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
-                    <img
-                      src={imagePreviewUrl}
-                      alt="Preview"
-                      className="h-24 w-24 rounded-lg object-cover"
-                    />
+                    {imagePreviewUrl && (
+                      <Image
+                        src={imagePreviewUrl}
+                        alt="Preview"
+                        width={96} // w-24 = 96px
+                        height={96} // h-24 = 96px
+                        className="h-24 w-24 rounded-lg object-cover"
+                        unoptimized
+                      />
+                    )}
                   </div>
                 ) : (
                   <p className="text-xs text-slate-500">
@@ -517,8 +541,8 @@ export default function NewProductPage() {
               </div>
             ) : (
               <p className="text-sm text-slate-500">
-                No presets added. Add presets like &quot;1 kg&quot;,
-                &quot;1 ser (7 kg)&quot;, etc.
+                No presets added. Add presets like &quot;1 kg&quot;, &quot;1 ser
+                (7 kg)&quot;, etc.
               </p>
             )}
           </div>

@@ -1,9 +1,8 @@
-﻿import Image from "next/image";
+import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 
 export default function PriceCard({ item, onClick, onAdd }) {
   const isIncrease = item.change > 0;
-  const isDecrease = item.change < 0;
 
   const formatPrice = (price) => {
     if (price >= 1000) {
@@ -52,7 +51,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
                   : "bg-emerald-500/90 text-white"
               }`}
             >
-              <span className="text-[10px]">{isIncrease ? "▲" : "▼"}</span>
+              <span className="text-[10px]">{isIncrease ? "+" : "-"}</span>
               {formatChange(item.change)} AFN
             </span>
           </div>
@@ -62,7 +61,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
         {item.change === 0 && (
           <div className="absolute right-2 top-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
-              <span className="text-[10px]">•</span>
+              <span className="text-[10px]">*</span>
               Stable
             </span>
           </div>
