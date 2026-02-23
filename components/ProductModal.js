@@ -137,7 +137,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row">
               {/* Image */}
-              <div className="relative aspect-[16/10] w-full sm:aspect-square sm:w-64 md:w-80">
+              <div className="relative aspect-16/10 w-full sm:aspect-square sm:w-64 md:w-80">
                 <Image
                   src={item.image || "/placeholder.jpg"}
                   alt={item.name}

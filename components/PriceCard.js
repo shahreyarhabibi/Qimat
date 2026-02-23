@@ -23,7 +23,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
       className="group relative flex cursor-pointer flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-[box-shadow,ring-color] duration-300 ease-out hover:shadow-xl hover:ring-slate-300/80 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600/80"
     >
       {/* Image Container */}
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+      <div className="relative aspect-4/3 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
         <Image
           src={item.image || "/placeholder.jpg"}
           alt={item.name}

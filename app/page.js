@@ -73,7 +73,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="hidden w-85 shrink-0 lg:block xl:w-95">
-                <div className="h-[500px] animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+                <div className="h-125 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
               </div>
             </div>
           </main>

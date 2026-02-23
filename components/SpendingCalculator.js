@@ -279,7 +279,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
 
           {/* Selected Item & Quantity */}
           {selectedItem && calcConfig && (
-            <div className="mt-4 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 p-4 dark:from-primary/10 dark:to-primary/20">
+            <div className="mt-4 rounded-2xl bg-linear-to-br from-primary/5 to-primary/10 p-4 dark:from-primary/10 dark:to-primary/20">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="font-medium text-slate-900 dark:text-white">
@@ -382,7 +382,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       <PlusIcon className="h-4 w-4" />
                     </button>
                   </div>
-                  <span className="min-w-[50px] text-sm font-medium text-slate-500 dark:text-slate-400">
+                  <span className="min-w-12.5 text-sm font-medium text-slate-500 dark:text-slate-400">
                     {calcConfig.displayUnit}
                   </span>
                 </div>
@@ -465,7 +465,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       >
                         <MinusIcon className="h-3 w-3" />
                       </button>
-                      <span className="min-w-[2.5rem] text-center text-xs font-medium text-slate-700 dark:text-slate-200">
+                      <span className="min-w-10 text-center text-xs font-medium text-slate-700 dark:text-slate-200">
                         {formatQuantity(item.quantity, config.step)}
                       </span>
                       <button
@@ -524,7 +524,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
 
         {/* Total Footer */}
         {basket.length > 0 && (
-          <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 p-5 dark:border-slate-700 dark:from-slate-800 dark:to-slate-800/50">
+          <div className="border-t border-slate-200 bg-linear-to-r from-slate-50 to-slate-100 p-5 dark:border-slate-700 dark:from-slate-800 dark:to-slate-800/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">

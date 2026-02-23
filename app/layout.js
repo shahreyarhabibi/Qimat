@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "Qimat – Real-time Prices",
+  title: "Qimat - Real-time Prices",
   description: "Track prices of goods, phones, currencies, and fuels.",
 };
 

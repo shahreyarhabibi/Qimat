@@ -104,7 +104,7 @@ export default function NotificationModal({ isOpen, onClose }) {
       />
 
       {/* Modal */}
-      <div className="fixed inset-x-4 top-4 z-50 mx-auto max-w-lg sm:inset-x-auto sm:left-auto sm:right-4 sm:top-16 sm:w-96 md:w-[420px]">
+      <div className="fixed inset-x-4 top-4 z-50 mx-auto max-w-lg sm:inset-x-auto sm:left-auto sm:right-4 sm:top-16 sm:w-96 md:w-105">
         <div className="flex max-h-[70vh] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-700">
