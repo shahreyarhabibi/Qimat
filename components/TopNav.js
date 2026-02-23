@@ -210,12 +210,18 @@ function CurrencySelector() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+        className={`group flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-semibold shadow-sm transition-all ${
+          isOpen
+            ? "border-primary/40 bg-primary/10 text-primary dark:border-primary/50 dark:bg-primary/20"
+            : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-700"
+        }`}
       >
-        <span className="text-base">{currentCurrency.flag}</span>
-        <span className="hidden sm:inline">{currentCurrency.code}</span>
+        <span className="text-base leading-none">{currentCurrency.flag}</span>
+        <span className="hidden tracking-wide sm:inline">
+          {currentCurrency.code}
+        </span>
         <ChevronDownIcon
-          className={`h-4 w-4 text-slate-400 transition-transform ${
+          className={`h-4 w-4 transition-transform ${
             isOpen ? "rotate-180" : ""
           }`}
         />

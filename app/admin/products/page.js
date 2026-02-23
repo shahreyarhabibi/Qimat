@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   PlusIcon,
   PencilIcon,
@@ -196,10 +197,13 @@ export default function ProductsPage() {
                   <td className="whitespace-nowrap px-6 py-4">
                     <div className="flex items-center gap-3">
                       {product.image_path ? (
-                        <img
+                        <Image
                           src={product.image_path}
                           alt={product.name}
+                          width={40}
+                          height={40}
                           className="h-10 w-10 rounded-lg object-cover"
+                          unoptimized
                         />
                       ) : (
                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700">

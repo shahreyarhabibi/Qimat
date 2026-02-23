@@ -1,7 +1,7 @@
 // app/admin/products/[id]/page.js
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -52,21 +52,7 @@ export default function EditProductPage({ params }) {
 
   const [recentPrices, setRecentPrices] = useState([]);
 
-  useEffect(() => {
-    fetchProduct();
-    fetchCategories();
-    fetchSources();
-  }, [id]);
-
-  useEffect(() => {
-    return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
-    };
-  }, [imagePreviewUrl]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/products/${id}`);
       const data = await res.json();
@@ -96,10 +82,10 @@ export default function EditProductPage({ params }) {
 
         // Set current price
         if (product.recentPrices?.length > 0) {
-          setPriceData({
-            ...priceData,
+          setPriceData((prev) => ({
+            ...prev,
             price: product.recentPrices[0].price,
-          });
+          }));
         }
       } else {
         setMessage({ type: "error", text: "Product not found" });
@@ -110,7 +96,21 @@ export default function EditProductPage({ params }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchProduct();
+    fetchCategories();
+    fetchSources();
+  }, [fetchProduct, id]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl]);
 
   const fetchCategories = async () => {
     const res = await fetch("/api/admin/categories");

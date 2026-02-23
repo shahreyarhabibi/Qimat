@@ -63,7 +63,7 @@ export default function Home() {
             <div className="flex gap-8">
               <div className="min-w-0 flex-1">
                 <div className="mb-8 h-14 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
                   {[...Array(6)].map((_, i) => (
                     <div
                       key={i}
@@ -132,10 +132,21 @@ export default function Home() {
                   selectedCategory={selectedCategory}
                   setSelectedCategory={setSelectedCategory}
                 />
+
+                <div className="relative mt-4 md:hidden">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search items..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+                  />
+                </div>
               </div>
 
               {filteredItems.length > 0 ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
                   {filteredItems.map((item) => (
                     <PriceCard
                       key={item.id}
