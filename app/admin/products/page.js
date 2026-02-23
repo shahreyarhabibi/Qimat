@@ -289,8 +289,8 @@ export default function ProductsPage() {
               Delete Product
             </h3>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Are you sure you want to delete "{deleteModal.name}"? This action
-              cannot be undone.
+              Are you sure you want to delete &quot;{deleteModal.name}&quot;?
+              This action cannot be undone.
             </p>
             <div className="mt-6 flex gap-3">
               <button
