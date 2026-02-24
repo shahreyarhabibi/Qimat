@@ -12,6 +12,7 @@ import {
   ChartBarIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import {
   AreaChart,
   Area,
@@ -32,7 +33,13 @@ const TIME_RANGES = [
   { id: "30d", label: "1M", days: 30 },
 ];
 
-export default function ProductModal({ item, isOpen, onClose }) {
+export default function ProductModal({
+  item,
+  isOpen,
+  onClose,
+  isFavorite = false,
+  onToggleFavorite,
+}) {
   const [selectedRange, setSelectedRange] = useState("7d");
   const { t } = useI18n();
   const { formatPrice, currentCurrency, convertPrice, afnLabel, getCurrencyLabel } =
@@ -157,9 +164,26 @@ export default function ProductModal({ item, isOpen, onClose }) {
               {/* Product Info */}
               <div className="flex flex-1 flex-col p-4 sm:p-6">
                 <div className="flex-1">
-                  <h2 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl md:text-3xl">
-                    {item.name}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl md:text-3xl">
+                      {item.name}
+                    </h2>
+                    <button
+                      onClick={() => onToggleFavorite?.(item.id)}
+                      className={`inline-flex h-9 w-9 items-center justify-center rounded-full ${
+                        isFavorite
+                          ? "bg-rose-500 text-white"
+                          : "bg-slate-100 text-slate-500 hover:text-rose-500 dark:bg-slate-800 dark:text-slate-300"
+                      }`}
+                      title={
+                        isFavorite
+                          ? t("common.removeFavorite")
+                          : t("common.addFavorite")
+                      }
+                    >
+                      <HeartSolidIcon className="h-5 w-5" />
+                    </button>
+                  </div>
                   <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                     {item.unit}
                   </p>

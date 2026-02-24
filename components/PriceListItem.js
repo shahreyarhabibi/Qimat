@@ -3,10 +3,17 @@
 
 import Image from "next/image";
 import { MapPinIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import { useCurrency } from "@/lib/context/CurrencyContext";
 import { useI18n } from "@/lib/i18n/useI18n";
 
-export default function PriceListItem({ item, onClick, onAdd }) {
+export default function PriceListItem({
+  item,
+  onClick,
+  onAdd,
+  isFavorite = false,
+  onToggleFavorite,
+}) {
   const { t } = useI18n();
   const { formatPrice, currentCurrency, afnLabel } = useCurrency();
   const isIncrease = item.change > 0;
@@ -79,6 +86,23 @@ export default function PriceListItem({ item, onClick, onAdd }) {
             </span>
           )}
         </div>
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite?.(item.id);
+          }}
+          className={`inline-flex rounded-lg p-2 transition-colors ${
+            isFavorite
+              ? "bg-rose-500 text-white"
+              : "bg-slate-100 text-slate-500 hover:text-rose-500 dark:bg-slate-700 dark:text-slate-300"
+          }`}
+          title={
+            isFavorite ? t("common.removeFavorite") : t("common.addFavorite")
+          }
+        >
+          <HeartSolidIcon className="h-4 w-4" />
+        </button>
 
         <button
           onClick={(e) => {

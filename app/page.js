@@ -3,6 +3,7 @@
 
 import { useState, useMemo, useRef } from "react";
 import { useProducts } from "@/lib/hooks/useProducts";
+import { useFavorites } from "@/lib/hooks/useFavorites";
 import { CurrencyProvider } from "@/lib/context/CurrencyContext";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
@@ -37,6 +38,8 @@ export default function Home() {
 
 function HomeContent({ items, categories, loading, error }) {
   const { t } = useI18n();
+  const { favoriteIds, favoriteSet, isFavorite, toggleFavorite } =
+    useFavorites();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -56,15 +59,38 @@ function HomeContent({ items, categories, loading, error }) {
   };
 
   const filteredItems = useMemo(() => {
-    return items.filter((item) => {
+    const filtered = items.filter((item) => {
       const matchesSearch = item.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
       const matchesCategory =
-        !selectedCategory || item.category === selectedCategory;
+        !selectedCategory
+          ? true
+          : item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [items, searchQuery, selectedCategory]);
+
+    // If user has favorites, pin them first. Otherwise, pin featured first.
+    const shouldPrioritizeFavorites = favoriteIds.length > 0;
+    const indexed = filtered.map((item, index) => ({ item, index }));
+
+    indexed.sort((a, b) => {
+      if (shouldPrioritizeFavorites) {
+        const aFav = favoriteSet.has(Number(a.item.id)) ? 1 : 0;
+        const bFav = favoriteSet.has(Number(b.item.id)) ? 1 : 0;
+        if (aFav !== bFav) return bFav - aFav;
+      } else {
+        const aFeatured = a.item.isFeatured ? 1 : 0;
+        const bFeatured = b.item.isFeatured ? 1 : 0;
+        if (aFeatured !== bFeatured) return bFeatured - aFeatured;
+      }
+
+      // Keep stable original order for items with equal priority.
+      return a.index - b.index;
+    });
+
+    return indexed.map((entry) => entry.item);
+  }, [items, searchQuery, selectedCategory, favoriteIds.length, favoriteSet]);
 
   const handleOpenModal = (item) => {
     setSelectedItem(item);
@@ -88,6 +114,7 @@ function HomeContent({ items, categories, loading, error }) {
           items={[]}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          favoriteIds={favoriteIds}
         />
         <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
           <div className="flex gap-8">
@@ -118,6 +145,7 @@ function HomeContent({ items, categories, loading, error }) {
           items={[]}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          favoriteIds={favoriteIds}
         />
         <main className="flex min-h-[60vh] items-center justify-center px-6">
           <div className="text-center">
@@ -146,6 +174,7 @@ function HomeContent({ items, categories, loading, error }) {
         items={items}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+        favoriteIds={favoriteIds}
       />
 
       <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
@@ -219,6 +248,8 @@ function HomeContent({ items, categories, loading, error }) {
                       item={item}
                       onClick={handleOpenModal}
                       onAdd={handleAddToSpendingList}
+                      isFavorite={isFavorite(item.id)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   ))}
                 </div>
@@ -230,6 +261,8 @@ function HomeContent({ items, categories, loading, error }) {
                       item={item}
                       onClick={handleOpenModal}
                       onAdd={handleAddToSpendingList}
+                      isFavorite={isFavorite(item.id)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   ))}
                 </div>
@@ -285,6 +318,8 @@ function HomeContent({ items, categories, loading, error }) {
         item={selectedItem}
         isOpen={isModalOpen}
         onClose={handleCloseModal}
+        isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
+        onToggleFavorite={toggleFavorite}
       />
     </div>
   );

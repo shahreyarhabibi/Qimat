@@ -184,7 +184,7 @@ export default function TickerPage() {
             Click to add to ticker
           </p>
 
-          <div className="max-h-[400px] space-y-2 overflow-y-auto">
+          <div className="max-h-100 space-y-2 overflow-y-auto">
             {availableProducts.map((product) => (
               <button
                 key={product.id}

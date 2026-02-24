@@ -26,19 +26,30 @@ const categoryIcons = {
   metals: CubeIcon,
 };
 
-export default function NotificationModal({ isOpen, onClose }) {
+export default function NotificationModal({
+  isOpen,
+  onClose,
+  favoriteIds = [],
+  notificationPermission = "default",
+  onRequestNotificationPermission,
+}) {
   const { t } = useI18n();
   const { formatPrice } = useCurrency();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, increases, decreases
+  const [filter, setFilter] = useState("all"); // all, favorites, increases, decreases
   const [todayCount, setTodayCount] = useState(0);
 
   useEffect(() => {
     if (isOpen) {
+      if (favoriteIds.length > 0) {
+        setFilter("favorites");
+      } else {
+        setFilter("all");
+      }
       fetchNotifications();
     }
-  }, [isOpen]);
+  }, [isOpen, favoriteIds.length]);
 
   const fetchNotifications = async () => {
     setLoading(true);
@@ -57,7 +68,10 @@ export default function NotificationModal({ isOpen, onClose }) {
     }
   };
 
+  const favoriteSet = new Set((favoriteIds || []).map((id) => Number(id)));
+
   const filteredNotifications = notifications.filter((n) => {
+    if (filter === "favorites") return favoriteSet.has(Number(n.productId));
     if (filter === "increases") return n.isIncrease;
     if (filter === "decreases") return n.isDecrease;
     return true;
@@ -131,6 +145,18 @@ export default function NotificationModal({ isOpen, onClose }) {
             </button>
           </div>
 
+          {notificationPermission !== "granted" &&
+            notificationPermission !== "unsupported" && (
+              <div className="border-b border-slate-200 px-4 py-2 dark:border-slate-700">
+                <button
+                  onClick={onRequestNotificationPermission}
+                  className="w-full rounded-lg bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20"
+                >
+                  {t("notifications.enableBrowserNotifications")}
+                </button>
+              </div>
+            )}
+
           {/* Filter Tabs */}
           <div className="flex gap-1 border-b border-slate-200 px-4 py-2 dark:border-slate-700">
             <FilterTab
@@ -138,6 +164,14 @@ export default function NotificationModal({ isOpen, onClose }) {
               active={filter === "all"}
               count={notifications.length}
               onClick={() => setFilter("all")}
+            />
+            <FilterTab
+              label={t("notifications.favorites")}
+              active={filter === "favorites"}
+              count={notifications.filter((n) =>
+                favoriteSet.has(Number(n.productId)),
+              ).length}
+              onClick={() => setFilter("favorites")}
             />
             <FilterTab
               label={t("notifications.increases")}
@@ -180,7 +214,9 @@ export default function NotificationModal({ isOpen, onClose }) {
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {filter === "all"
                     ? t("notifications.noChangesLast7Days")
-                    : t("notifications.noFilteredLast7Days", { filter })}
+                    : filter === "favorites"
+                      ? t("notifications.noFavoriteChangesLast7Days")
+                      : t("notifications.noFilteredLast7Days", { filter })}
                 </p>
               </div>
             ) : (

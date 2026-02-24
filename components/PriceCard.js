@@ -1,10 +1,17 @@
 ﻿// components/PriceCard.jsx
 import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
+import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import { useCurrency } from "@/lib/context/CurrencyContext";
 import { useI18n } from "@/lib/i18n/useI18n";
 
-export default function PriceCard({ item, onClick, onAdd }) {
+export default function PriceCard({
+  item,
+  onClick,
+  onAdd,
+  isFavorite = false,
+  onToggleFavorite,
+}) {
   const { t } = useI18n();
   const { formatPrice, currentCurrency, convertPrice, afnLabel } =
     useCurrency();
@@ -34,14 +41,34 @@ export default function PriceCard({ item, onClick, onAdd }) {
           className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
 
-        <div className="absolute left-2 top-2">
+        <div className="absolute left-2 top-2 z-10">
           <span className="inline-flex items-center rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-300">
             {item.category}
           </span>
         </div>
 
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite?.(item.id);
+          }}
+          className={`absolute bottom-2 left-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition ${
+            isFavorite
+              ? "bg-rose-500 text-white"
+              : "bg-white/90 text-slate-500 hover:text-rose-500 dark:bg-slate-900/90 dark:text-slate-300"
+          }`}
+          aria-label={
+            isFavorite ? t("common.removeFavorite") : t("common.addFavorite")
+          }
+          title={
+            isFavorite ? t("common.removeFavorite") : t("common.addFavorite")
+          }
+        >
+          <HeartSolidIcon className="h-4 w-4" />
+        </button>
+
         {item.change !== 0 && (
-          <div className="absolute right-2 top-2">
+          <div className="absolute right-2 top-2 z-10">
             <span
               className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-bold shadow-sm backdrop-blur-sm ${
                 isIncrease
@@ -56,7 +83,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
         )}
 
         {item.change === 0 && (
-          <div className="absolute right-2 top-2">
+          <div className="absolute right-2 top-2 z-10">
             <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
               <span className="text-[10px]">•</span>
               {t("priceCard.stable")}
@@ -64,8 +91,8 @@ export default function PriceCard({ item, onClick, onAdd }) {
           </div>
         )}
 
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/15">
-          <div className="flex translate-y-4 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/15">
+          <div className="pointer-events-auto flex translate-y-4 gap-2 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
             <button
               onClick={(e) => {
                 e.stopPropagation();

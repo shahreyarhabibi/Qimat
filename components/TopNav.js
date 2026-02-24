@@ -30,11 +30,17 @@ export default function TopNav({
   searchQuery,
   setSearchQuery,
   showNotificationDot,
+  favoriteIds = [],
 }) {
   const { t } = useI18n();
+  const { currentCurrency, afnLabel } = useCurrency();
   const [tickerProductIds, setTickerProductIds] = useState([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [notificationPermission, setNotificationPermission] = useState(() =>
+    typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+  );
+  const notifiedIdsRef = useRef(new Set());
 
   const toggleDarkMode = () => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -76,12 +82,54 @@ export default function TopNav({
 
   // Fetch notification count
   useEffect(() => {
+    const storedIds =
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("qimat_notified_ids") || "[]")
+        : [];
+    notifiedIdsRef.current = new Set(Array.isArray(storedIds) ? storedIds : []);
+
     const fetchNotificationCount = async () => {
       try {
         const res = await fetch("/api/notifications?days=1&limit=100");
         const data = await res.json();
         if (data.success) {
           setNotificationCount(data.data.todayCount);
+
+          if (
+            notificationPermission === "granted" &&
+            Array.isArray(favoriteIds) &&
+            favoriteIds.length > 0
+          ) {
+            const favoriteSet = new Set(favoriteIds.map((id) => Number(id)));
+            const favoriteNotifications = data.data.notifications.filter((n) =>
+              favoriteSet.has(Number(n.productId)),
+            );
+
+            const newNotifications = favoriteNotifications.filter(
+              (n) => !notifiedIdsRef.current.has(n.id),
+            );
+
+            newNotifications.forEach((n) => {
+              const direction = n.isIncrease ? "up" : "down";
+              const symbol = n.isIncrease ? "+" : "-";
+              const amount = Math.round(Math.abs(n.changeAmount)).toLocaleString();
+
+              new Notification(n.productName, {
+                body: `${symbol}${amount} ${
+                  currentCurrency.code === "AFN"
+                    ? afnLabel
+                    : currentCurrency.code
+                } (${direction})`,
+                tag: `qimat-${n.id}`,
+              });
+
+              notifiedIdsRef.current.add(n.id);
+            });
+
+            const recentIds = Array.from(notifiedIdsRef.current).slice(-200);
+            localStorage.setItem("qimat_notified_ids", JSON.stringify(recentIds));
+            notifiedIdsRef.current = new Set(recentIds);
+          }
         }
       } catch (error) {
         console.error("Error fetching notification count:", error);
@@ -91,7 +139,13 @@ export default function TopNav({
     fetchNotificationCount();
     const interval = setInterval(fetchNotificationCount, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [favoriteIds, notificationPermission, currentCurrency.code, afnLabel]);
+
+  const requestNotificationPermission = async () => {
+    if (typeof Notification === "undefined") return;
+    const result = await Notification.requestPermission();
+    setNotificationPermission(result);
+  };
 
   const displayTickerData = useMemo(() => {
     if (tickerProductIds.length > 0) {
@@ -174,6 +228,9 @@ export default function TopNav({
       <NotificationModal
         isOpen={notificationOpen}
         onClose={() => setNotificationOpen(false)}
+        favoriteIds={favoriteIds}
+        notificationPermission={notificationPermission}
+        onRequestNotificationPermission={requestNotificationPermission}
       />
     </>
   );
@@ -225,7 +282,7 @@ function CurrencySelector() {
       >
         <span className="text-base leading-none">{currentCurrency.flag}</span>
         <span className="hidden tracking-wide sm:inline">
-          {currentCurrency.code}
+          {currentCurrency.code === "AFN" ? afnLabel : currentCurrency.code}
           <span className="mx-1 text-slate-300 dark:text-slate-500">•</span>
           {currentLanguage.shortCode}
         </span>
