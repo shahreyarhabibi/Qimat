@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { useI18n } from "@/lib/i18n/useI18n";
 import {
   ShoppingBagIcon,
   DevicePhoneMobileIcon,
@@ -27,6 +28,7 @@ export default function FilterBar({
   selectedCategory,
   setSelectedCategory,
 }) {
+  const { t } = useI18n();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSelect = (categoryId) => {
@@ -44,7 +46,7 @@ export default function FilterBar({
       <div className="hidden md:block">
         <div className="flex items-center gap-2 rounded-2xl bg-white/80 p-2 shadow-lg shadow-slate-200/50 ring-1 ring-slate-200/50 backdrop-blur-xl dark:bg-slate-800/80 dark:shadow-slate-900/50 dark:ring-slate-700/50">
           <CategoryPill
-            label="All"
+            label={t("filterBar.all")}
             icon={Squares2X2Icon}
             isActive={selectedCategory === null}
             onClick={() => handleSelect(null)}
@@ -86,10 +88,10 @@ export default function FilterBar({
             </div>
             <div className="text-left">
               <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                {selectedCategoryData?.name || "All Categories"}
+                {selectedCategoryData?.name || t("filterBar.allCategories")}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Tap to change
+                {t("filterBar.tapToChange")}
               </p>
             </div>
           </div>
@@ -110,7 +112,7 @@ export default function FilterBar({
         >
           <div className="p-2">
             <MobileFilterItem
-              label="All Categories"
+              label={t("filterBar.allCategories")}
               icon={Squares2X2Icon}
               isActive={selectedCategory === null}
               onClick={() => handleSelect(null)}
@@ -135,7 +137,7 @@ export default function FilterBar({
       {selectedCategory && (
         <div className="mt-3 flex items-center gap-2">
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            Filtering by:
+            {t("filterBar.filteringBy")}
           </span>
           <button
             onClick={() => setSelectedCategory(null)}

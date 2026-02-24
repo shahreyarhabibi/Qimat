@@ -1,4 +1,4 @@
-// app/page.js
+﻿// app/page.js
 "use client";
 
 import { useState, useMemo, useRef } from "react";
@@ -12,6 +12,7 @@ import ProductModal from "@/components/ProductModal";
 import SpendingCalculator, {
   CalculatorFAB,
 } from "@/components/SpendingCalculator";
+import { useI18n } from "@/lib/i18n/useI18n";
 import {
   MagnifyingGlassIcon,
   Squares2X2Icon,
@@ -20,6 +21,22 @@ import {
 
 export default function Home() {
   const { items, categories, loading, error } = useProducts();
+  const providerItems = loading || error ? [] : items;
+
+  return (
+    <CurrencyProvider items={providerItems}>
+      <HomeContent
+        items={items}
+        categories={categories}
+        loading={loading}
+        error={error}
+      />
+    </CurrencyProvider>
+  );
+}
+
+function HomeContent({ items, categories, loading, error }) {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
@@ -33,7 +50,6 @@ export default function Home() {
   const desktopCalcRef = useRef(null);
   const mobileCalcRef = useRef(null);
 
-  // Save view preference
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
     localStorage.setItem("qimat_view_mode", mode);
@@ -65,226 +81,209 @@ export default function Home() {
     mobileCalcRef.current?.addItem(item);
   };
 
-  // Loading skeleton
   if (loading) {
     return (
-      <CurrencyProvider items={[]}>
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-          <TopNav
-            items={[]}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-          <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
-            <div className="flex gap-8">
-              <div className="min-w-0 flex-1">
-                <div className="mb-8 h-14 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
-                <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
-                  {[...Array(6)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="h-72 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="hidden w-85 shrink-0 lg:block xl:w-95">
-                <div className="h-125 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <TopNav
+          items={[]}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+        <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
+          <div className="flex gap-8">
+            <div className="min-w-0 flex-1">
+              <div className="mb-8 h-14 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="h-72 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
+                  />
+                ))}
               </div>
             </div>
-          </main>
-        </div>
-      </CurrencyProvider>
+            <div className="hidden w-85 shrink-0 lg:block xl:w-95">
+              <div className="h-125 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </main>
+      </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
-      <CurrencyProvider items={[]}>
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-          <TopNav
-            items={[]}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-          <main className="flex min-h-[60vh] items-center justify-center px-6">
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/30">
-                <span className="text-3xl">⚠️</span>
-              </div>
-              <h2 className="mt-4 text-xl font-semibold text-slate-900 dark:text-white">
-                Failed to load prices
-              </h2>
-              <p className="mt-2 text-slate-500 dark:text-slate-400">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="btn btn-primary mt-6"
-              >
-                Try Again
-              </button>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <TopNav
+          items={[]}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
+        <main className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="text-center">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/30">
+              <span className="text-3xl">⚠️</span>
             </div>
-          </main>
-        </div>
-      </CurrencyProvider>
+            <h2 className="mt-4 text-xl font-semibold text-slate-900 dark:text-white">
+              {t("home.failedTitle")}
+            </h2>
+            <p className="mt-2 text-slate-500 dark:text-slate-400">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="btn btn-primary mt-6"
+            >
+              {t("home.tryAgain")}
+            </button>
+          </div>
+        </main>
+      </div>
     );
   }
 
   return (
-    <CurrencyProvider items={items}>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <TopNav
-          items={items}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <TopNav
+        items={items}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
 
-        <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
-          <div className="flex gap-8">
-            <div className="min-w-0 flex-1">
-              <div className="mb-8">
-                <FilterBar
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                  setSelectedCategory={setSelectedCategory}
+      <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
+        <div className="flex gap-8">
+          <div className="min-w-0 flex-1">
+            <div className="mb-8">
+              <FilterBar
+                categories={categories}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+
+              <div className="relative mt-4 md:hidden">
+                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder={t("topNav.searchPlaceholder")}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                 />
-
-                {/* Mobile Search */}
-                <div className="relative mt-4 md:hidden">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Search items..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
-                  />
-                </div>
               </div>
+            </div>
 
-              {/* Items Count */}
-              {filteredItems.length > 0 && (
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Showing{" "}
-                    <span className="font-semibold text-slate-700 dark:text-slate-200">
-                      {filteredItems.length}
-                    </span>{" "}
-                    {filteredItems.length === 1 ? "item" : "items"}
-                  </p>
-                  <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-                    <button
-                      onClick={() => handleViewModeChange("grid")}
-                      className={`rounded-md p-1.5 transition-colors ${
-                        viewMode === "grid"
-                          ? "bg-primary text-white"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                      }`}
-                      title="Grid view"
-                      aria-label="Grid view"
-                    >
-                      <Squares2X2Icon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleViewModeChange("list")}
-                      className={`rounded-md p-1.5 transition-colors ${
-                        viewMode === "list"
-                          ? "bg-primary text-white"
-                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                      }`}
-                      title="List view"
-                      aria-label="List view"
-                    >
-                      <ListBulletIcon className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Products Display */}
-              {filteredItems.length > 0 ? (
-                viewMode === "grid" ? (
-                  // Grid View
-                  <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
-                    {filteredItems.map((item) => (
-                      <PriceCard
-                        key={item.id}
-                        item={item}
-                        onClick={handleOpenModal}
-                        onAdd={handleAddToSpendingList}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  // List View
-                  <div className="space-y-3">
-                    {filteredItems.map((item) => (
-                      <PriceListItem
-                        key={item.id}
-                        item={item}
-                        onClick={handleOpenModal}
-                        onAdd={handleAddToSpendingList}
-                      />
-                    ))}
-                  </div>
-                )
-              ) : (
-                // Empty State
-                <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 text-center shadow-sm ring-1 ring-slate-100 dark:bg-slate-800/50 dark:ring-slate-800">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700">
-                    <MagnifyingGlassIcon className="h-8 w-8 text-slate-400" />
-                  </div>
-                  <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
-                    No items found
-                  </p>
-                  <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                    Try adjusting your search or filter.
-                  </p>
+            {filteredItems.length > 0 && (
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  {t("home.showing")} {" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {filteredItems.length}
+                  </span>{" "}
+                  {filteredItems.length === 1 ? t("common.item") : t("common.items")}
+                </p>
+                <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
                   <button
-                    onClick={() => {
-                      setSelectedCategory(null);
-                      setSearchQuery("");
-                    }}
-                    className="btn btn-primary btn-sm mt-6 rounded-full px-6"
+                    onClick={() => handleViewModeChange("grid")}
+                    className={`rounded-md p-1.5 transition-colors ${
+                      viewMode === "grid"
+                        ? "bg-primary text-white"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                    }`}
+                    title={t("topNav.gridView")}
+                    aria-label={t("topNav.gridView")}
                   >
-                    View All Items
+                    <Squares2X2Icon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleViewModeChange("list")}
+                    className={`rounded-md p-1.5 transition-colors ${
+                      viewMode === "list"
+                        ? "bg-primary text-white"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                    }`}
+                    title={t("topNav.listView")}
+                    aria-label={t("topNav.listView")}
+                  >
+                    <ListBulletIcon className="h-4 w-4" />
                   </button>
                 </div>
-              )}
-            </div>
-
-            {/* Desktop Calculator */}
-            <div className="hidden w-85 shrink-0 lg:block xl:w-95">
-              <div className="sticky top-32">
-                <SpendingCalculator
-                  ref={desktopCalcRef}
-                  items={items}
-                  isOpen={true}
-                  onClose={() => {}}
-                />
               </div>
+            )}
+
+            {filteredItems.length > 0 ? (
+              viewMode === "grid" ? (
+                <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+                  {filteredItems.map((item) => (
+                    <PriceCard
+                      key={item.id}
+                      item={item}
+                      onClick={handleOpenModal}
+                      onAdd={handleAddToSpendingList}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredItems.map((item) => (
+                    <PriceListItem
+                      key={item.id}
+                      item={item}
+                      onClick={handleOpenModal}
+                      onAdd={handleAddToSpendingList}
+                    />
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 text-center shadow-sm ring-1 ring-slate-100 dark:bg-slate-800/50 dark:ring-slate-800">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700">
+                  <MagnifyingGlassIcon className="h-8 w-8 text-slate-400" />
+                </div>
+                <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+                  {t("home.noItemsTitle")}
+                </p>
+                <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                  {t("home.noItemsSubtitle")}
+                </p>
+                <button
+                  onClick={() => {
+                    setSelectedCategory(null);
+                    setSearchQuery("");
+                  }}
+                  className="btn btn-primary btn-sm mt-6 rounded-full px-6"
+                >
+                  {t("home.viewAll")}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="hidden w-85 shrink-0 lg:block xl:w-95">
+            <div className="sticky top-32">
+              <SpendingCalculator
+                ref={desktopCalcRef}
+                items={items}
+                isOpen={true}
+                onClose={() => {}}
+              />
             </div>
           </div>
-        </main>
-
-        {/* Mobile Calculator */}
-        <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
-        <div className="lg:hidden">
-          <SpendingCalculator
-            ref={mobileCalcRef}
-            items={items}
-            isOpen={calculatorOpen}
-            onClose={() => setCalculatorOpen(false)}
-          />
         </div>
+      </main>
 
-        {/* Product Modal */}
-        <ProductModal
-          item={selectedItem}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+      <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
+      <div className="lg:hidden">
+        <SpendingCalculator
+          ref={mobileCalcRef}
+          items={items}
+          isOpen={calculatorOpen}
+          onClose={() => setCalculatorOpen(false)}
         />
       </div>
-    </CurrencyProvider>
+
+      <ProductModal
+        item={selectedItem}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
+    </div>
   );
 }

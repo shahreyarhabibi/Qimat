@@ -16,6 +16,7 @@ import {
   Squares2X2Icon,
 } from "@heroicons/react/24/outline";
 import { useCurrency } from "@/lib/context/CurrencyContext";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 const categoryIcons = {
   essentials: ShoppingBagIcon,
@@ -26,6 +27,7 @@ const categoryIcons = {
 };
 
 export default function NotificationModal({ isOpen, onClose }) {
+  const { t } = useI18n();
   const { formatPrice } = useCurrency();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,9 +80,9 @@ export default function NotificationModal({ isOpen, onClose }) {
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (dateStr === today.toISOString().split("T")[0]) {
-      return "Today";
+      return t("notifications.today");
     } else if (dateStr === yesterday.toISOString().split("T")[0]) {
-      return "Yesterday";
+      return t("notifications.yesterday");
     } else {
       return date.toLocaleDateString("en-US", {
         weekday: "long",
@@ -114,10 +116,10 @@ export default function NotificationModal({ isOpen, onClose }) {
               </div>
               <div>
                 <h2 className="font-semibold text-slate-900 dark:text-white">
-                  Price Changes
+                  {t("notifications.title")}
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {todayCount} changes today
+                  {todayCount} {t("notifications.todayChanges")}
                 </p>
               </div>
             </div>
@@ -132,20 +134,20 @@ export default function NotificationModal({ isOpen, onClose }) {
           {/* Filter Tabs */}
           <div className="flex gap-1 border-b border-slate-200 px-4 py-2 dark:border-slate-700">
             <FilterTab
-              label="All"
+              label={t("notifications.all")}
               active={filter === "all"}
               count={notifications.length}
               onClick={() => setFilter("all")}
             />
             <FilterTab
-              label="Increases"
+              label={t("notifications.increases")}
               active={filter === "increases"}
               count={notifications.filter((n) => n.isIncrease).length}
               onClick={() => setFilter("increases")}
               color="rose"
             />
             <FilterTab
-              label="Decreases"
+              label={t("notifications.decreases")}
               active={filter === "decreases"}
               count={notifications.filter((n) => n.isDecrease).length}
               onClick={() => setFilter("decreases")}
@@ -173,12 +175,12 @@ export default function NotificationModal({ isOpen, onClose }) {
                   <BellIcon className="h-8 w-8 text-slate-400" />
                 </div>
                 <p className="mt-4 font-medium text-slate-900 dark:text-white">
-                  No price changes
+                  {t("notifications.noChanges")}
                 </p>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   {filter === "all"
-                    ? "No price changes in the last 7 days"
-                    : `No ${filter} in the last 7 days`}
+                    ? t("notifications.noChangesLast7Days")
+                    : t("notifications.noFilteredLast7Days", { filter })}
                 </p>
               </div>
             ) : (
@@ -219,7 +221,7 @@ export default function NotificationModal({ isOpen, onClose }) {
           {!loading && filteredNotifications.length > 0 && (
             <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-700">
               <p className="text-center text-xs text-slate-500 dark:text-slate-400">
-                Showing price changes from the last 7 days
+                {t("notifications.footer")}
               </p>
             </div>
           )}

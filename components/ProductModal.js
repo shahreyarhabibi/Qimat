@@ -23,6 +23,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { useCurrency } from "@/lib/context/CurrencyContext";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 const TIME_RANGES = [
   { id: "7d", label: "7D", days: 7 },
@@ -33,6 +34,7 @@ const TIME_RANGES = [
 
 export default function ProductModal({ item, isOpen, onClose }) {
   const [selectedRange, setSelectedRange] = useState("7d");
+  const { t } = useI18n();
   const { formatPrice, currentCurrency, convertPrice } = useCurrency();
 
   const chartData = useMemo(() => {
@@ -169,7 +171,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
 
                   <div className="mt-3 flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <MapPinIcon className="h-4 w-4" />
-                    <span>{item.source?.name || "Unknown Source"}</span>
+                    <span>{item.source?.name || t("productModal.unknownSource")}</span>
                   </div>
                 </div>
 
@@ -177,7 +179,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                 <div className="mt-4 flex items-end justify-between gap-4 border-t border-slate-100 pt-4 dark:border-slate-800 sm:mt-6">
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                      Current Price
+                      {t("productModal.currentPrice")}
                     </p>
                     <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-white sm:text-3xl">
                       {formatDisplayPrice(item.price)}
@@ -210,14 +212,14 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       {isIncrease ? "+" : ""}
                       {convertedChange.toLocaleString()} {currentCurrency.code}
                     </span>
-                    <span className="text-xs opacity-75">today</span>
+                    <span className="text-xs opacity-75">{t("productModal.today")}</span>
                   </div>
                 </div>
 
                 {priceBreakdown && (
                   <div className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                      Price Breakdown
+                      {t("productModal.priceBreakdown")}
                     </p>
                     <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                       {priceBreakdown.map((entry) => (
@@ -246,7 +248,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                 <div className="flex items-center gap-2">
                   <ChartBarIcon className="h-5 w-5 text-primary" />
                   <h3 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
-                    Price History ({currentCurrency.code})
+                    {t("productModal.priceHistory")} ({currentCurrency.code})
                   </h3>
                   {priceStats && (
                     <span
@@ -286,7 +288,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                   <div className="flex items-center gap-4 sm:gap-8">
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
-                        Open
+                        {t("productModal.open")}
                       </p>
                       <p className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
                         {formatPrice(priceStats.first)}
@@ -294,7 +296,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     </div>
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
-                        High
+                        {t("productModal.high")}
                       </p>
                       <p className="text-sm font-bold text-emerald-600 sm:text-base">
                         {formatPrice(priceStats.max)}
@@ -302,7 +304,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     </div>
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
-                        Low
+                        {t("productModal.low")}
                       </p>
                       <p className="text-sm font-bold text-rose-600 sm:text-base">
                         {formatPrice(priceStats.min)}
@@ -310,7 +312,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     </div>
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
-                        Avg
+                        {t("productModal.avg")}
                       </p>
                       <p className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
                         {formatPrice(priceStats.avg)}
@@ -319,7 +321,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:text-xs">
-                      Change
+                      {t("productModal.change")}
                     </p>
                     <p
                       className={`text-sm font-bold sm:text-base ${
@@ -447,9 +449,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
               <div className="mt-4 flex items-start gap-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-500/10">
                 <InformationCircleIcon className="h-5 w-5 shrink-0 text-blue-500" />
                 <p className="text-xs leading-relaxed text-blue-700 dark:text-blue-300">
-                  Prices are updated daily. Historical data shows price trends
-                  to help you make informed decisions. Red indicates price
-                  increase (cost more), green indicates decrease (savings).
+                  {t("productModal.infoNote")}
                 </p>
               </div>
             </div>

@@ -4,8 +4,10 @@
 import Image from "next/image";
 import { MapPinIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useCurrency } from "@/lib/context/CurrencyContext";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function PriceListItem({ item, onClick, onAdd }) {
+  const { t } = useI18n();
   const { formatPrice, currentCurrency } = useCurrency();
   const isIncrease = item.change > 0;
 
@@ -44,7 +46,7 @@ export default function PriceListItem({ item, onClick, onAdd }) {
           <div className="flex min-w-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
             <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
-              {item.source?.shortName || item.source?.name || "Unknown"}
+              {item.source?.shortName || item.source?.name || t("priceListItem.unknown")}
             </span>
           </div>
         </div>
@@ -71,7 +73,7 @@ export default function PriceListItem({ item, onClick, onAdd }) {
             </span>
           ) : (
             <span className="mt-1 inline-flex whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-400">
-              Stable
+              {t("priceListItem.stable")}
             </span>
           )}
         </div>
@@ -82,7 +84,7 @@ export default function PriceListItem({ item, onClick, onAdd }) {
             onAdd?.(item);
           }}
           className="hidden rounded-lg bg-primary/10 p-2 text-primary transition-colors hover:bg-primary hover:text-white sm:inline-flex"
-          title="Add to spending list"
+          title={t("priceListItem.addToSpendingList")}
         >
           <PlusIcon className="h-4 w-4" />
         </button>

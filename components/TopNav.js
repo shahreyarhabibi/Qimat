@@ -11,6 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import NotificationModal from "./NotificationModal";
 import { useCurrency, CURRENCIES } from "@/lib/context/CurrencyContext";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 // Ticker items by slug (these will be filtered from the items prop)
 const TICKER_SLUGS = [
@@ -30,6 +31,7 @@ export default function TopNav({
   setSearchQuery,
   showNotificationDot,
 }) {
+  const { t } = useI18n();
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof document === "undefined") return false;
     return document.documentElement.classList.contains("dark");
@@ -140,7 +142,7 @@ export default function TopNav({
                 Qimat
               </h1>
               <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-                Real-time market prices
+                {t("topNav.appTagline")}
               </p>
             </div>
 
@@ -150,7 +152,7 @@ export default function TopNav({
                 <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search items..."
+                  placeholder={t("topNav.searchPlaceholder")}
                   value={searchQuery || ""}
                   onChange={(e) => setSearchQuery?.(e.target.value)}
                   className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
@@ -168,6 +170,8 @@ export default function TopNav({
                 }
                 toggleDarkMode={toggleDarkMode}
                 onNotificationClick={() => setNotificationOpen(true)}
+                notificationsLabel={t("topNav.notifications")}
+                toggleDarkLabel={t("topNav.toggleDark")}
               />
             </div>
           </div>
@@ -197,6 +201,7 @@ function CurrencySelector() {
     currentLanguage,
     languages,
   } = useCurrency();
+  const { t } = useI18n();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -242,7 +247,7 @@ function CurrencySelector() {
         <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
           <div className="p-2">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Select Currency
+              {t("topNav.selectCurrency")}
             </p>
             {currencyOptions.map((currency) => {
               const isSelected = selectedCurrency === currency.code;
@@ -302,7 +307,7 @@ function CurrencySelector() {
 
           <div className="border-t border-slate-200 p-2 dark:border-slate-700">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Select Language
+              {t("topNav.selectLanguage")}
             </p>
             {Object.values(languages).map((language) => {
               const isSelected = selectedLanguage === language.code;
@@ -321,7 +326,7 @@ function CurrencySelector() {
                   }`}
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{language.name}</p>
+                    <p className="font-medium">{t(`languages.${language.code}`)}</p>
                   </div>
                   {isSelected && (
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
@@ -348,7 +353,7 @@ function CurrencySelector() {
           {/* Rate Info */}
           <div className="border-t border-slate-200 bg-slate-50 px-4 py-2 dark:border-slate-700 dark:bg-slate-900">
             <p className="text-[10px] text-slate-400">
-              Rates updated daily from Sarai Shahzada
+              {t("topNav.ratesNote")}
             </p>
           </div>
         </div>
@@ -447,13 +452,16 @@ function HeaderActions({
   showNotificationDot,
   toggleDarkMode,
   onNotificationClick,
+  notificationsLabel,
+  toggleDarkLabel,
 }) {
   return (
     <div className="flex shrink-0 items-center gap-1">
       <button
         onClick={toggleDarkMode}
         className="rounded-xl p-2.5 transition hover:bg-white hover:shadow-sm dark:hover:bg-slate-800"
-        aria-label="Toggle dark mode"
+        aria-label={toggleDarkLabel}
+        title={toggleDarkLabel}
       >
         {darkMode ? (
           <SunIcon className="h-5 w-5 text-amber-400" />
@@ -465,7 +473,8 @@ function HeaderActions({
       <button
         onClick={onNotificationClick}
         className="relative rounded-xl p-2.5 transition hover:bg-white hover:shadow-sm dark:hover:bg-slate-800"
-        aria-label="Notifications"
+        aria-label={notificationsLabel}
+        title={notificationsLabel}
       >
         <BellIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
         {showNotificationDot && (

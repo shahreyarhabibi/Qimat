@@ -19,11 +19,13 @@ import {
   MinusIcon,
 } from "@heroicons/react/24/outline";
 import { useCurrency } from "@/lib/context/CurrencyContext";
+import { useI18n } from "@/lib/i18n/useI18n";
 
 const SpendingCalculator = forwardRef(function SpendingCalculator(
   { items = [], isOpen, onClose },
   ref,
 ) {
+  const { t } = useI18n();
   const { formatPrice, currentCurrency, exchangeRates } = useCurrency();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -208,10 +210,10 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             </div>
             <div>
               <h2 className="text-base font-semibold text-slate-900 dark:text-white">
-                Spending Calculator
+                {t("calculator.title")}
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Plan your shopping list
+                {t("calculator.subtitle")}
               </p>
             </div>
           </div>
@@ -230,7 +232,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             <MagnifyingGlassIcon className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder={t("calculator.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -308,7 +310,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               {calcConfig.presets && calcConfig.presets.length > 0 && (
                 <div className="mt-4">
                   <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                    Quick Select
+                    {t("calculator.quickSelect")}
                   </label>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {calcConfig.presets.map((preset, index) => (
@@ -331,7 +333,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               {/* Custom Quantity Input */}
               <div className="mt-4">
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                  Custom Amount
+                  {t("calculator.customAmount")}
                 </label>
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex flex-1 items-center rounded-xl bg-white shadow-sm ring-1 ring-slate-200 dark:bg-slate-700 dark:ring-slate-600">
@@ -392,7 +394,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200/50 pt-4">
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Subtotal ({formatQuantity(quantity, calcConfig.step)}{" "}
+                    {t("calculator.subtotal")} ({formatQuantity(quantity, calcConfig.step)}{" "}
                     {calcConfig.displayUnit})
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
@@ -409,7 +411,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   className="flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/25 transition hover:bg-primary/90 hover:shadow-xl"
                 >
                   <PlusIcon className="h-4 w-4" />
-                  Add
+                  {t("common.add")}
                 </button>
               </div>
             </div>
@@ -422,13 +424,13 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Your List ({basket.length} items)
+                  {t("calculator.yourList")} ({basket.length} {t("common.items")})
                 </p>
                 <button
                   onClick={handleClearBasket}
                   className="text-xs font-medium text-rose-500 hover:text-rose-600"
                 >
-                  Clear All
+                  {t("calculator.clearAll")}
                 </button>
               </div>
 
@@ -436,7 +438,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 const config = item.calculator || {
                   min: 1,
                   step: 1,
-                  displayUnit: "unit",
+                  displayUnit: t("calculator.unit"),
                 };
                 return (
                   <div
@@ -513,10 +515,10 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 <ShoppingBagIcon className="h-7 w-7 text-slate-400" />
               </div>
               <p className="mt-4 text-sm font-medium text-slate-900 dark:text-white">
-                Your list is empty
+                {t("calculator.emptyTitle")}
               </p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Search and add items to calculate
+                {t("calculator.emptySubtitle")}
               </p>
             </div>
           )}
@@ -528,7 +530,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Total Estimated Cost
+                  {t("calculator.totalEstimated")}
                 </p>
                 <p className="text-2xl font-bold text-slate-900 dark:text-white">
                   {formatDisplayPrice(total)}
@@ -543,7 +545,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 {currentCurrency.code === "AFN" && exchangeRates.USD && (
                   <>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Approximately
+                      {t("calculator.approximately")}
                     </p>
                     <p className="text-lg font-semibold text-primary">
                       ${Math.round(total / exchangeRates.USD).toLocaleString()}{" "}
@@ -554,7 +556,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 {currentCurrency.code !== "AFN" && (
                   <>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                      In AFN
+                      {t("calculator.inAfn")}
                     </p>
                     <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">
                       {Math.round(total).toLocaleString()} AFN
