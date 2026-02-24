@@ -187,8 +187,16 @@ export default function TopNav({
 function CurrencySelector() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { selectedCurrency, changeCurrency, exchangeRates, currentCurrency } =
-    useCurrency();
+  const {
+    selectedCurrency,
+    selectedLanguage,
+    changeCurrency,
+    changeLanguage,
+    exchangeRates,
+    currentCurrency,
+    currentLanguage,
+    languages,
+  } = useCurrency();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -219,6 +227,8 @@ function CurrencySelector() {
         <span className="text-base leading-none">{currentCurrency.flag}</span>
         <span className="hidden tracking-wide sm:inline">
           {currentCurrency.code}
+          <span className="mx-1 text-slate-300 dark:text-slate-500">•</span>
+          {currentLanguage.shortCode}
         </span>
         <ChevronDownIcon
           className={`h-4 w-4 transition-transform ${
@@ -268,6 +278,51 @@ function CurrencySelector() {
                       </p>
                     </div>
                   )}
+                  {isSelected && (
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
+                      <svg
+                        className="h-3 w-3 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={3}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="border-t border-slate-200 p-2 dark:border-slate-700">
+            <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
+              Select Language
+            </p>
+            {Object.values(languages).map((language) => {
+              const isSelected = selectedLanguage === language.code;
+
+              return (
+                <button
+                  key={language.code}
+                  onClick={() => {
+                    changeLanguage(language.code);
+                    setIsOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${
+                    isSelected
+                      ? "bg-primary/10 text-primary"
+                      : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  <div className="flex-1">
+                    <p className="font-medium">{language.name}</p>
+                  </div>
                   {isSelected && (
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
                       <svg
