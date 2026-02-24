@@ -1,7 +1,7 @@
 // components/TopNav.jsx
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -24,6 +24,25 @@ const TICKER_SLUGS = [
   "haji-aziz-rice",
   "diesel",
 ];
+const PUSH_CLIENT_KEY = "qimat_push_client_id";
+
+function getOrCreatePushClientId() {
+  if (typeof window === "undefined") return null;
+  const existing = localStorage.getItem(PUSH_CLIENT_KEY);
+  if (existing) return existing;
+
+  const id = `client_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  localStorage.setItem(PUSH_CLIENT_KEY, id);
+  return id;
+}
+
+function base64ToUint8Array(base64String) {
+  const normalized = String(base64String || "").replace(/\s+/g, "");
+  const padding = "=".repeat((4 - (normalized.length % 4)) % 4);
+  const base64 = (normalized + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const raw = atob(base64);
+  return Uint8Array.from([...raw].map((char) => char.charCodeAt(0)));
+}
 
 export default function TopNav({
   items = [],
@@ -40,6 +59,8 @@ export default function TopNav({
   const [notificationPermission, setNotificationPermission] = useState(() =>
     typeof Notification === "undefined" ? "unsupported" : Notification.permission,
   );
+  const [pushClientId] = useState(() => getOrCreatePushClientId());
+  const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
   const notifiedIdsRef = useRef(new Set());
 
   const toggleDarkMode = () => {
@@ -77,6 +98,27 @@ export default function TopNav({
     fetchTickerConfig();
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) {
+      return undefined;
+    }
+
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => {
+        if (mounted) setServiceWorkerReady(true);
+      })
+      .catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+
+    return () => {
+      mounted = false;
     };
   }, []);
 
@@ -141,10 +183,84 @@ export default function TopNav({
     return () => clearInterval(interval);
   }, [favoriteIds, notificationPermission, currentCurrency.code, afnLabel]);
 
+  const syncPushSubscription = useCallback(async () => {
+    if (
+      typeof window === "undefined" ||
+      !serviceWorkerReady ||
+      !pushClientId ||
+      !("serviceWorker" in navigator) ||
+      notificationPermission !== "granted"
+    ) {
+      return;
+    }
+
+    const vapidPublicKey = String(
+      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
+    ).trim();
+    if (!vapidPublicKey) return;
+
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const existing = await registration.pushManager.getSubscription();
+      const subscription =
+        existing ||
+        (await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: base64ToUint8Array(vapidPublicKey),
+        }));
+
+      await fetch("/api/push/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: pushClientId,
+          subscription: subscription.toJSON(),
+          favoriteIds,
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to sync push subscription:", error);
+    }
+  }, [serviceWorkerReady, pushClientId, notificationPermission, favoriteIds]);
+
+  useEffect(() => {
+    syncPushSubscription();
+  }, [syncPushSubscription]);
+
+  useEffect(() => {
+    if (!pushClientId) return;
+
+    fetch("/api/push/preferences", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: pushClientId,
+        favoriteIds,
+      }),
+    }).catch((error) => {
+      console.error("Failed to sync favorite preferences:", error);
+    });
+  }, [favoriteIds, pushClientId]);
+
   const requestNotificationPermission = async () => {
     if (typeof Notification === "undefined") return;
     const result = await Notification.requestPermission();
     setNotificationPermission(result);
+
+    if (result === "granted") {
+      await syncPushSubscription();
+      return;
+    }
+
+    if (result === "denied" && pushClientId) {
+      await fetch("/api/push/subscription", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId: pushClientId }),
+      }).catch((error) => {
+        console.error("Failed to deactivate push subscription:", error);
+      });
+    }
   };
 
   const displayTickerData = useMemo(() => {
