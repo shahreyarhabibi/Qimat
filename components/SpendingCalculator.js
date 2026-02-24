@@ -26,7 +26,8 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   ref,
 ) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, exchangeRates } = useCurrency();
+  const { formatPrice, currentCurrency, exchangeRates, afnLabel } =
+    useCurrency();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -268,7 +269,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                         {formatDisplayPrice(item.price)}
                         {currentCurrency.code === "AFN" && (
                           <span className="ml-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                            AFN
+                            {afnLabel}
                           </span>
                         )}
                       </span>
@@ -290,7 +291,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                     {formatDisplayPrice(selectedItem.price)}
                     {currentCurrency.code === "AFN"
-                      ? " AFN"
+                      ? ` ${afnLabel}`
                       : ` ${currentCurrency.code}`}{" "}
                     / {selectedItem.unit}
                   </p>
@@ -401,7 +402,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     {formatDisplayPrice(calculatePrice(selectedItem, quantity))}
                     {currentCurrency.code === "AFN" && (
                       <span className="ml-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                        AFN
+                        {afnLabel}
                       </span>
                     )}
                   </p>
@@ -488,7 +489,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                         {formatDisplayPrice(item.totalPrice)}
                         {currentCurrency.code === "AFN" && (
                           <span className="ml-1 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                            AFN
+                            {afnLabel}
                           </span>
                         )}
                       </p>
@@ -536,7 +537,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   {formatDisplayPrice(total)}
                   {currentCurrency.code === "AFN" && (
                     <span className="ml-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      AFN
+                      {afnLabel}
                     </span>
                   )}
                 </p>
@@ -559,7 +560,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       {t("calculator.inAfn")}
                     </p>
                     <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">
-                      {Math.round(total).toLocaleString()} AFN
+                      {Math.round(total).toLocaleString()} {afnLabel}
                     </p>
                   </>
                 )}

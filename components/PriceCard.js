@@ -6,7 +6,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function PriceCard({ item, onClick, onAdd }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
+  const { formatPrice, currentCurrency, convertPrice, afnLabel } = useCurrency();
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
 
@@ -104,7 +104,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
             </span>
             {currentCurrency.code === "AFN" && (
               <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                AF
+                {afnLabel}
               </span>
             )}
           </div>

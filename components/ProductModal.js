@@ -35,7 +35,8 @@ const TIME_RANGES = [
 export default function ProductModal({ item, isOpen, onClose }) {
   const [selectedRange, setSelectedRange] = useState("7d");
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, convertPrice } = useCurrency();
+  const { formatPrice, currentCurrency, convertPrice, afnLabel, getCurrencyLabel } =
+    useCurrency();
 
   const chartData = useMemo(() => {
     if (!item?.priceHistory) return [];
@@ -185,7 +186,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       {formatDisplayPrice(item.price)}
                       {currentCurrency.code === "AFN" && (
                         <span className="ml-2 text-sm font-medium text-slate-500 dark:text-slate-400">
-                          AFN
+                          {afnLabel}
                         </span>
                       )}
                     </p>
@@ -210,7 +211,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                     )}
                     <span className="text-sm font-bold sm:text-base">
                       {isIncrease ? "+" : ""}
-                      {convertedChange.toLocaleString()} {currentCurrency.code}
+                      {convertedChange.toLocaleString()} {getCurrencyLabel(currentCurrency.code)}
                     </span>
                     <span className="text-xs opacity-75">{t("productModal.today")}</span>
                   </div>
@@ -248,7 +249,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                 <div className="flex items-center gap-2">
                   <ChartBarIcon className="h-5 w-5 text-primary" />
                   <h3 className="text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
-                    {t("productModal.priceHistory")} ({currentCurrency.code})
+                    {t("productModal.priceHistory")} ({getCurrencyLabel(currentCurrency.code)})
                   </h3>
                   {priceStats && (
                     <span
@@ -406,6 +407,7 @@ export default function ProductModal({ item, isOpen, onClose }) {
                       content={
                         <CustomTooltip
                           currency={currentCurrency}
+                          getCurrencyLabel={getCurrencyLabel}
                           formatPrice={formatPrice}
                         />
                       }
@@ -461,7 +463,14 @@ export default function ProductModal({ item, isOpen, onClose }) {
 }
 
 // Custom Tooltip Component
-function CustomTooltip({ active, payload, label, currency, formatPrice }) {
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  currency,
+  formatPrice,
+  getCurrencyLabel,
+}) {
   if (!active || !payload || !payload.length) return null;
 
   const data = payload[0].payload;
@@ -480,7 +489,7 @@ function CustomTooltip({ active, payload, label, currency, formatPrice }) {
       <p className="mt-1 text-base font-bold text-slate-900 dark:text-white">
         {Math.round(price).toLocaleString()}{" "}
         <span className="text-xs font-normal text-slate-500">
-          {currency.code}
+          {getCurrencyLabel ? getCurrencyLabel(currency.code) : currency.code}
         </span>
       </p>
     </div>

@@ -8,7 +8,7 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function PriceListItem({ item, onClick, onAdd }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency } = useCurrency();
+  const { formatPrice, currentCurrency, afnLabel } = useCurrency();
   const isIncrease = item.change > 0;
 
   const formatChange = (change) => {
@@ -69,7 +69,7 @@ export default function PriceListItem({ item, onClick, onAdd }) {
                   : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
               }`}
             >
-              {isIncrease ? "+" : "-"} {formatChange(item.change)} AFN
+              {isIncrease ? "+" : "-"} {formatChange(item.change)} {afnLabel}
             </span>
           ) : (
             <span className="mt-1 inline-flex whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-400">

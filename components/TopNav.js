@@ -200,6 +200,8 @@ function CurrencySelector() {
     currentCurrency,
     currentLanguage,
     languages,
+    afnLabel,
+    getCurrencyLabel,
   } = useCurrency();
   const { t } = useI18n();
 
@@ -244,7 +246,10 @@ function CurrencySelector() {
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+        <div
+          dir="ltr"
+          className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700"
+        >
           <div className="p-2">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
               {t("topNav.selectCurrency")}
@@ -279,7 +284,7 @@ function CurrencySelector() {
                         1 {currency.code}
                       </p>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                        {Math.round(rate).toLocaleString()} AFN
+                        {Math.round(rate).toLocaleString()} {afnLabel}
                       </p>
                     </div>
                   )}
@@ -326,7 +331,9 @@ function CurrencySelector() {
                   }`}
                 >
                   <div className="flex-1">
-                    <p className="font-medium">{t(`languages.${language.code}`)}</p>
+                    <p className="font-medium">
+                      {t(`languages.${language.code}`)}
+                    </p>
                   </div>
                   {isSelected && (
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
@@ -406,7 +413,8 @@ function TickerSkeleton() {
 }
 
 function TickerItem({ item }) {
-  const { formatPrice, convertPrice, currentCurrency } = useCurrency();
+  const { formatPrice, convertPrice, currentCurrency, getCurrencyLabel } =
+    useCurrency();
   const isUp = item.change > 0;
   const isDown = item.change < 0;
 
@@ -425,7 +433,8 @@ function TickerItem({ item }) {
       <span className="text-sm font-bold text-white">
         {formatPrice(item.price, { showSymbol: false })}
         <span className="ml-1 text-xs font-normal text-slate-400">
-          {currentCurrency.code}
+          {" "}
+          {getCurrencyLabel(currentCurrency.code)}
         </span>
       </span>
 
@@ -439,7 +448,7 @@ function TickerItem({ item }) {
         }`}
       >
         {isUp ? "+" : isDown ? "-" : ""}
-        {formatChange(item.change)} {currentCurrency.code}
+        {formatChange(item.change)} {getCurrencyLabel(currentCurrency.code)}
       </span>
 
       <span className="ml-4 text-slate-600">|</span>
@@ -486,5 +495,3 @@ function HeaderActions({
     </div>
   );
 }
-
-
