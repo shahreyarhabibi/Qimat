@@ -23,7 +23,7 @@ const categoryIcons = {
 };
 
 export default function FilterBar({
-  categories = [], // Now comes from database via props
+  categories = [],
   selectedCategory,
   setSelectedCategory,
 }) {
@@ -77,8 +77,7 @@ export default function FilterBar({
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
               {selectedCategory ? (
                 (() => {
-                  const Icon =
-                    categoryIcons[selectedCategory] || Squares2X2Icon;
+                  const Icon = categoryIcons[selectedCategory] || Squares2X2Icon;
                   return <Icon className="h-5 w-5 text-primary" />;
                 })()
               ) : (

@@ -7,11 +7,16 @@ import { CurrencyProvider } from "@/lib/context/CurrencyContext";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
 import PriceCard from "@/components/PriceCard";
+import PriceListItem from "@/components/PriceListItem";
 import ProductModal from "@/components/ProductModal";
 import SpendingCalculator, {
   CalculatorFAB,
 } from "@/components/SpendingCalculator";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import {
+  MagnifyingGlassIcon,
+  Squares2X2Icon,
+  ListBulletIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Home() {
   const { items, categories, loading, error } = useProducts();
@@ -20,8 +25,19 @@ export default function Home() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window === "undefined") return "grid";
+    const savedView = localStorage.getItem("qimat_view_mode");
+    return savedView === "list" ? "list" : "grid";
+  });
   const desktopCalcRef = useRef(null);
   const mobileCalcRef = useRef(null);
+
+  // Save view preference
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    localStorage.setItem("qimat_view_mode", mode);
+  };
 
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
@@ -133,6 +149,7 @@ export default function Home() {
                   setSelectedCategory={setSelectedCategory}
                 />
 
+                {/* Mobile Search */}
                 <div className="relative mt-4 md:hidden">
                   <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
                   <input
@@ -145,18 +162,74 @@ export default function Home() {
                 </div>
               </div>
 
-              {filteredItems.length > 0 ? (
-                <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
-                  {filteredItems.map((item) => (
-                    <PriceCard
-                      key={item.id}
-                      item={item}
-                      onClick={handleOpenModal}
-                      onAdd={handleAddToSpendingList}
-                    />
-                  ))}
+              {/* Items Count */}
+              {filteredItems.length > 0 && (
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Showing{" "}
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      {filteredItems.length}
+                    </span>{" "}
+                    {filteredItems.length === 1 ? "item" : "items"}
+                  </p>
+                  <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                    <button
+                      onClick={() => handleViewModeChange("grid")}
+                      className={`rounded-md p-1.5 transition-colors ${
+                        viewMode === "grid"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                      }`}
+                      title="Grid view"
+                      aria-label="Grid view"
+                    >
+                      <Squares2X2Icon className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleViewModeChange("list")}
+                      className={`rounded-md p-1.5 transition-colors ${
+                        viewMode === "list"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                      }`}
+                      title="List view"
+                      aria-label="List view"
+                    >
+                      <ListBulletIcon className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
+              )}
+
+              {/* Products Display */}
+              {filteredItems.length > 0 ? (
+                viewMode === "grid" ? (
+                  // Grid View
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+                    {filteredItems.map((item) => (
+                      <PriceCard
+                        key={item.id}
+                        item={item}
+                        onClick={handleOpenModal}
+                        onAdd={handleAddToSpendingList}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  // List View
+                  <div className="space-y-3">
+                    {filteredItems.map((item) => (
+                      <PriceListItem
+                        key={item.id}
+                        item={item}
+                        onClick={handleOpenModal}
+                        onAdd={handleAddToSpendingList}
+                      />
+                    ))}
+                  </div>
+                )
               ) : (
+                // Empty State
                 <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 text-center shadow-sm ring-1 ring-slate-100 dark:bg-slate-800/50 dark:ring-slate-800">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700">
                     <MagnifyingGlassIcon className="h-8 w-8 text-slate-400" />
@@ -180,6 +253,7 @@ export default function Home() {
               )}
             </div>
 
+            {/* Desktop Calculator */}
             <div className="hidden w-85 shrink-0 lg:block xl:w-95">
               <div className="sticky top-32">
                 <SpendingCalculator
@@ -193,6 +267,7 @@ export default function Home() {
           </div>
         </main>
 
+        {/* Mobile Calculator */}
         <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
         <div className="lg:hidden">
           <SpendingCalculator
@@ -203,6 +278,7 @@ export default function Home() {
           />
         </div>
 
+        {/* Product Modal */}
         <ProductModal
           item={selectedItem}
           isOpen={isModalOpen}
