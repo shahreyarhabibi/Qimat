@@ -6,7 +6,8 @@ import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function PriceCard({ item, onClick, onAdd }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, convertPrice, afnLabel } = useCurrency();
+  const { formatPrice, currentCurrency, convertPrice, afnLabel } =
+    useCurrency();
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
 
@@ -79,7 +80,7 @@ export default function PriceCard({ item, onClick, onAdd }) {
                 e.stopPropagation();
                 onAdd?.(item);
               }}
-              className="cursor-pointer rounded-full bg-primary/95 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-primary hover:shadow-xl active:translate-y-0"
+              className="cursor-pointer rounded-full bg-primary px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-sm transition hover:-translate-y-0.5 hover:bg-primary hover:shadow-xl active:translate-y-0"
             >
               {t("priceCard.addToList")}
             </button>

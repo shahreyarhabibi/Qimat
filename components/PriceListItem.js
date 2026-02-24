@@ -46,13 +46,15 @@ export default function PriceListItem({ item, onClick, onAdd }) {
           <div className="flex min-w-0 items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
             <MapPinIcon className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
-              {item.source?.shortName || item.source?.name || t("priceListItem.unknown")}
+              {item.source?.shortName ||
+                item.source?.name ||
+                t("priceListItem.unknown")}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="ml-2 flex shrink-0 items-end gap-2">
+      <div className="ml-2 flex shrink-0 items-center gap-5">
         <div className="flex flex-col items-end">
           <p className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
             {formatPrice(item.price, {

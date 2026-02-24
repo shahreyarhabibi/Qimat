@@ -44,8 +44,8 @@ function HomeContent({ items, categories, loading, error }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window === "undefined") return "grid";
-    const savedView = localStorage.getItem("qimat_view_mode");
-    return savedView === "list" ? "list" : "grid";
+    const saved = localStorage.getItem("qimat_view_mode");
+    return saved === "list" ? "list" : "grid";
   });
   const desktopCalcRef = useRef(null);
   const mobileCalcRef = useRef(null);
@@ -130,7 +130,7 @@ function HomeContent({ items, categories, loading, error }) {
             <p className="mt-2 text-slate-500 dark:text-slate-400">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="btn btn-primary mt-6"
+              className="mt-6 inline-flex items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
             >
               {t("home.tryAgain")}
             </button>
@@ -173,11 +173,13 @@ function HomeContent({ items, categories, loading, error }) {
             {filteredItems.length > 0 && (
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {t("home.showing")} {" "}
+                  {t("home.showing")}{" "}
                   <span className="font-semibold text-slate-700 dark:text-slate-200">
                     {filteredItems.length}
                   </span>{" "}
-                  {filteredItems.length === 1 ? t("common.item") : t("common.items")}
+                  {filteredItems.length === 1
+                    ? t("common.item")
+                    : t("common.items")}
                 </p>
                 <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
                   <button
@@ -248,7 +250,7 @@ function HomeContent({ items, categories, loading, error }) {
                     setSelectedCategory(null);
                     setSearchQuery("");
                   }}
-                  className="btn btn-primary btn-sm mt-6 rounded-full px-6"
+                  className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
                 >
                   {t("home.viewAll")}
                 </button>

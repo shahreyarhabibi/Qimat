@@ -1,18 +1,54 @@
-@import "tailwindcss";
-@plugin "daisyui";
-@plugin "daisyui/theme" {
-  name: "light";
-  default: true;
-
-  --color-primary: #059669; /* emerald-600 */
-  --color-primary-content: #ffffff;
-  --color-secondary: #f59e0b; /* amber-500 */
-  --color-secondary-content: #111827;
-}
+﻿@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+
+  --color-bg-primary: 248 250 252;
+  --color-bg-secondary: 241 245 249;
+  --color-bg-card: 255 255 255;
+
+  --color-text-primary: 15 23 42;
+  --color-text-secondary: 51 65 85;
+  --color-text-muted: 100 116 139;
+
+  --color-brand: 5 150 105;
+  --color-brand-light: 16 185 129;
+  --color-secondary-accent: 245 158 11;
+
+  --color-border: 226 232 240;
+  --color-success: 16 185 129;
+  --color-danger: 244 63 94;
+
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(148, 163, 184, 0.25);
+  --glass-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+
+  --color-bg-primary: 15 23 42;
+  --color-bg-secondary: 30 41 59;
+  --color-bg-card: 30 41 59;
+
+  --color-text-primary: 226 232 240;
+  --color-text-secondary: 203 213 225;
+  --color-text-muted: 148 163 184;
+
+  --color-brand: 16 185 129;
+  --color-brand-light: 52 211 153;
+  --color-secondary-accent: 251 191 36;
+
+  --color-border: 71 85 105;
+  --color-success: 52 211 153;
+  --color-danger: 251 113 133;
+
+  --glass-bg: rgba(30, 41, 59, 0.55);
+  --glass-border: rgba(148, 163, 184, 0.2);
+  --glass-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
 }
 
 @theme inline {
@@ -22,27 +58,18 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-/* Base Styles */
 body {
   background-color: rgb(var(--color-bg-primary));
   color: rgb(var(--color-text-primary));
   font-family: system-ui, -apple-system, sans-serif;
 }
 
-/* Custom Utility Classes */
 @utility bg-primary {
-  background-color: rgb(var(--color-bg-primary));
+  background-color: rgb(var(--color-brand));
 }
 
 @utility bg-secondary {
-  background-color: rgb(var(--color-bg-secondary));
+  background-color: rgb(var(--color-secondary-accent));
 }
 
 @utility bg-card {
@@ -50,7 +77,7 @@ body {
 }
 
 @utility text-primary {
-  color: rgb(var(--color-text-primary));
+  color: rgb(var(--color-brand));
 }
 
 @utility text-secondary {
@@ -77,7 +104,6 @@ body {
   border-color: rgb(var(--color-border));
 }
 
-/* Glass Effect */
 @utility glass-effect {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
@@ -86,7 +112,6 @@ body {
   box-shadow: var(--glass-shadow);
 }
 
-/* Price Change Colors */
 @utility text-up {
   color: rgb(var(--color-success));
 }
@@ -103,7 +128,6 @@ body {
   background-color: rgb(var(--color-danger) / 0.1);
 }
 
-/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -122,7 +146,6 @@ body {
   background: rgb(var(--color-text-muted) / 0.5);
 }
 
-/* Hide scrollbar for category filter on mobile */
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -132,15 +155,13 @@ body {
   scrollbar-width: none;
 }
 
-
-/* Safe area for mobile bottom navbar */
 .pb-safe {
   padding-bottom: calc(5rem + env(safe-area-inset-bottom));
 }
 
-/* Animation for notification badge */
 @keyframes pulse-dot {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -153,7 +174,7 @@ body {
 .animate-pulse-dot {
   animation: pulse-dot 2s ease-in-out infinite;
 }
-/* Ticker Animation - Seamless Infinite Loop */
+
 .ticker-wrapper {
   overflow: hidden;
   width: 100%;
@@ -182,7 +203,7 @@ body {
   animation-play-state: paused;
 }
 
-/* Ensure smooth animation */
 .ticker-set {
   flex-shrink: 0;
 }
+

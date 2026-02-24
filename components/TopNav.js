@@ -32,26 +32,19 @@ export default function TopNav({
   showNotificationDot,
 }) {
   const { t } = useI18n();
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.classList.contains("dark");
-  });
   const [tickerProductIds, setTickerProductIds] = useState([]);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
 
   const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const next = !prev;
-      if (next) {
-        document.documentElement.classList.add("dark");
-        localStorage.theme = "dark";
-      } else {
-        document.documentElement.classList.remove("dark");
-        localStorage.theme = "light";
-      }
-      return next;
-    });
+    const isDark = document.documentElement.classList.contains("dark");
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.theme = "light";
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.theme = "dark";
+    }
   };
 
   // Fetch ticker config
@@ -163,7 +156,6 @@ export default function TopNav({
               <CurrencySelector />
 
               <HeaderActions
-                darkMode={darkMode}
                 notificationCount={notificationCount}
                 showNotificationDot={
                   showNotificationDot || notificationCount > 0
@@ -456,7 +448,6 @@ function TickerItem({ item }) {
   );
 }
 function HeaderActions({
-  darkMode,
   notificationCount,
   showNotificationDot,
   toggleDarkMode,
@@ -472,11 +463,8 @@ function HeaderActions({
         aria-label={toggleDarkLabel}
         title={toggleDarkLabel}
       >
-        {darkMode ? (
-          <SunIcon className="h-5 w-5 text-amber-400" />
-        ) : (
-          <MoonIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
-        )}
+        <SunIcon className="hidden h-5 w-5 text-amber-400 dark:block" />
+        <MoonIcon className="h-5 w-5 text-slate-600 dark:hidden" />
       </button>
 
       <button
