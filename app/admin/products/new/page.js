@@ -1,4 +1,4 @@
-// app/admin/products/new/page.js
+//app/admin/products/new/page.js
 "use client";
 
 import { useState, useEffect } from "react";
