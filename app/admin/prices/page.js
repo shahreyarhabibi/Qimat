@@ -230,7 +230,7 @@ export default function PricesPage() {
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredProducts.map((product) => {
                 const daysAgo = getDaysAgo(product.last_price_date);
-                const isStale = daysAgo && daysAgo > 7;
+                const isStale = daysAgo !== null && daysAgo > 7;
                 const hasChanged =
                   prices[product.id] &&
                   parseFloat(prices[product.id]) !==
