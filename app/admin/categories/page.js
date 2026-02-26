@@ -15,7 +15,12 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
-  const [newCategory, setNewCategory] = useState({ name: "", icon: "" });
+  const [newCategory, setNewCategory] = useState({
+    name: "",
+    nameFa: "",
+    namePs: "",
+    icon: "",
+  });
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
@@ -47,7 +52,7 @@ export default function CategoriesPage() {
       const data = await res.json();
       if (data.success) {
         fetchCategories();
-        setNewCategory({ name: "", icon: "" });
+        setNewCategory({ name: "", nameFa: "", namePs: "", icon: "" });
         setShowAddForm(false);
       }
     } catch (error) {
@@ -123,13 +128,31 @@ export default function CategoriesPage() {
           <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">
             New Category
           </h3>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <input
               type="text"
               placeholder="Category name"
               value={newCategory.name}
               onChange={(e) =>
                 setNewCategory({ ...newCategory, name: e.target.value })
+              }
+              className="flex-1 rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="Category name (Farsi)"
+              value={newCategory.nameFa}
+              onChange={(e) =>
+                setNewCategory({ ...newCategory, nameFa: e.target.value })
+              }
+              className="flex-1 rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
+            />
+            <input
+              type="text"
+              placeholder="Category name (Pashto)"
+              value={newCategory.namePs}
+              onChange={(e) =>
+                setNewCategory({ ...newCategory, namePs: e.target.value })
               }
               className="flex-1 rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
             />
@@ -182,7 +205,25 @@ export default function CategoriesPage() {
                     onChange={(e) =>
                       setEditData({ ...editData, name: e.target.value })
                     }
-                    className="flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
+                    className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={editData.nameFa || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, nameFa: e.target.value })
+                    }
+                    placeholder="Farsi name"
+                    className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
+                  />
+                  <input
+                    type="text"
+                    value={editData.namePs || ""}
+                    onChange={(e) =>
+                      setEditData({ ...editData, namePs: e.target.value })
+                    }
+                    placeholder="Pashto name"
+                    className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700 dark:text-white"
                   />
                   <button
                     onClick={() => handleUpdate(category.id)}
@@ -213,6 +254,8 @@ export default function CategoriesPage() {
                       setEditingId(category.id);
                       setEditData({
                         name: category.name,
+                        nameFa: category.name_fa,
+                        namePs: category.name_ps,
                         icon: category.icon,
                       });
                     }}

@@ -16,7 +16,14 @@ export default function SourcesPage() {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
-  const [newSource, setNewSource] = useState({ name: "", shortName: "" });
+  const [newSource, setNewSource] = useState({
+    name: "",
+    nameFa: "",
+    namePs: "",
+    shortName: "",
+    shortNameFa: "",
+    shortNamePs: "",
+  });
   const [showAddForm, setShowAddForm] = useState(false);
   const [error, setError] = useState(null);
 
@@ -46,14 +53,25 @@ export default function SourcesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newSource.name,
+          nameFa: newSource.nameFa,
+          namePs: newSource.namePs,
           shortName: newSource.shortName || newSource.name,
+          shortNameFa: newSource.shortNameFa,
+          shortNamePs: newSource.shortNamePs,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         fetchSources();
-        setNewSource({ name: "", shortName: "" });
+        setNewSource({
+          name: "",
+          nameFa: "",
+          namePs: "",
+          shortName: "",
+          shortNameFa: "",
+          shortNamePs: "",
+        });
         setShowAddForm(false);
       } else {
         setError(data.error || "Failed to add source");
@@ -116,7 +134,11 @@ export default function SourcesPage() {
     setEditingId(source.id);
     setEditData({
       name: source.name,
+      nameFa: source.name_fa,
+      namePs: source.name_ps,
       shortName: source.short_name,
+      shortNameFa: source.short_name_fa,
+      shortNamePs: source.short_name_ps,
     });
   };
 
@@ -169,7 +191,7 @@ export default function SourcesPage() {
           <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">
             Add New Source
           </h3>
-          <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex flex-wrap gap-4">
             <div className="flex-1">
               <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
                 Full Name *
@@ -180,6 +202,34 @@ export default function SourcesPage() {
                 value={newSource.name}
                 onChange={(e) =>
                   setNewSource({ ...newSource, name: e.target.value })
+                }
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Full Name (Farsi)
+              </label>
+              <input
+                type="text"
+                placeholder="Full name in Farsi"
+                value={newSource.nameFa}
+                onChange={(e) =>
+                  setNewSource({ ...newSource, nameFa: e.target.value })
+                }
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Full Name (Pashto)
+              </label>
+              <input
+                type="text"
+                placeholder="Full name in Pashto"
+                value={newSource.namePs}
+                onChange={(e) =>
+                  setNewSource({ ...newSource, namePs: e.target.value })
                 }
                 className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
               />
@@ -198,6 +248,34 @@ export default function SourcesPage() {
                 className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
               />
             </div>
+            <div className="flex-1">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Short Name (Farsi)
+              </label>
+              <input
+                type="text"
+                placeholder="Short name in Farsi"
+                value={newSource.shortNameFa}
+                onChange={(e) =>
+                  setNewSource({ ...newSource, shortNameFa: e.target.value })
+                }
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Short Name (Pashto)
+              </label>
+              <input
+                type="text"
+                placeholder="Short name in Pashto"
+                value={newSource.shortNamePs}
+                onChange={(e) =>
+                  setNewSource({ ...newSource, shortNamePs: e.target.value })
+                }
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
             <div className="flex items-end gap-2">
               <button
                 onClick={handleAdd}
@@ -209,7 +287,14 @@ export default function SourcesPage() {
               <button
                 onClick={() => {
                   setShowAddForm(false);
-                  setNewSource({ name: "", shortName: "" });
+                  setNewSource({
+                    name: "",
+                    nameFa: "",
+                    namePs: "",
+                    shortName: "",
+                    shortNameFa: "",
+                    shortNamePs: "",
+                  });
                 }}
                 className="rounded-xl bg-slate-100 px-6 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
               >
@@ -234,7 +319,7 @@ export default function SourcesPage() {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
                       <MapPinIcon className="h-5 w-5 text-primary" />
                     </div>
-                    <div className="flex flex-1 gap-3">
+                    <div className="flex flex-1 flex-wrap gap-3">
                       <input
                         type="text"
                         value={editData.name || ""}
@@ -242,7 +327,25 @@ export default function SourcesPage() {
                           setEditData({ ...editData, name: e.target.value })
                         }
                         placeholder="Full name"
-                        className="flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                        className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                      />
+                      <input
+                        type="text"
+                        value={editData.nameFa || ""}
+                        onChange={(e) =>
+                          setEditData({ ...editData, nameFa: e.target.value })
+                        }
+                        placeholder="Full name (Farsi)"
+                        className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                      />
+                      <input
+                        type="text"
+                        value={editData.namePs || ""}
+                        onChange={(e) =>
+                          setEditData({ ...editData, namePs: e.target.value })
+                        }
+                        placeholder="Full name (Pashto)"
+                        className="min-w-40 flex-1 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
                       />
                       <input
                         type="text"
@@ -254,6 +357,30 @@ export default function SourcesPage() {
                           })
                         }
                         placeholder="Short name"
+                        className="w-40 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                      />
+                      <input
+                        type="text"
+                        value={editData.shortNameFa || ""}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            shortNameFa: e.target.value,
+                          })
+                        }
+                        placeholder="Short name (Farsi)"
+                        className="w-40 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                      />
+                      <input
+                        type="text"
+                        value={editData.shortNamePs || ""}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            shortNamePs: e.target.value,
+                          })
+                        }
+                        placeholder="Short name (Pashto)"
                         className="w-40 rounded-lg border-0 bg-slate-50 px-3 py-2 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
                       />
                     </div>

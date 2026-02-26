@@ -23,10 +23,16 @@ export default function NewProductPage() {
 
   const [formData, setFormData] = useState({
     name: "",
+    nameFa: "",
+    namePs: "",
     description: "",
+    descriptionFa: "",
+    descriptionPs: "",
     category: "",
     source: "",
     unit: "",
+    unitFa: "",
+    unitPs: "",
     image: "",
     price: "",
     priceDate: new Date().toISOString().split("T")[0],
@@ -282,6 +288,66 @@ export default function NewProductPage() {
               />
             </div>
 
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Product Name (Farsi)
+              </label>
+              <input
+                type="text"
+                value={formData.nameFa}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameFa: e.target.value })
+                }
+                placeholder="Product name in Farsi"
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Product Name (Pashto)
+              </label>
+              <input
+                type="text"
+                value={formData.namePs}
+                onChange={(e) =>
+                  setFormData({ ...formData, namePs: e.target.value })
+                }
+                placeholder="Product name in Pashto"
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Unit (Farsi)
+              </label>
+              <input
+                type="text"
+                value={formData.unitFa}
+                onChange={(e) =>
+                  setFormData({ ...formData, unitFa: e.target.value })
+                }
+                placeholder="Unit in Farsi"
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Unit (Pashto)
+              </label>
+              <input
+                type="text"
+                value={formData.unitPs}
+                onChange={(e) =>
+                  setFormData({ ...formData, unitPs: e.target.value })
+                }
+                placeholder="Unit in Pashto"
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
             <div className="sm:col-span-2">
               <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
                 <input
@@ -342,6 +408,36 @@ export default function NewProductPage() {
                 }
                 rows={3}
                 placeholder="Product description..."
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Description (Farsi)
+              </label>
+              <textarea
+                value={formData.descriptionFa}
+                onChange={(e) =>
+                  setFormData({ ...formData, descriptionFa: e.target.value })
+                }
+                rows={3}
+                placeholder="Product description in Farsi..."
+                className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Description (Pashto)
+              </label>
+              <textarea
+                value={formData.descriptionPs}
+                onChange={(e) =>
+                  setFormData({ ...formData, descriptionPs: e.target.value })
+                }
+                rows={3}
+                placeholder="Product description in Pashto..."
                 className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
               />
             </div>

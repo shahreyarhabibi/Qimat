@@ -25,13 +25,20 @@ export default function EditProductPage({ params }) {
   const [message, setMessage] = useState(null);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [imagePreviewError, setImagePreviewError] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
+    nameFa: "",
+    namePs: "",
     description: "",
+    descriptionFa: "",
+    descriptionPs: "",
     category: "",
     source: "",
     unit: "",
+    unitFa: "",
+    unitPs: "",
     image: "",
     isActive: true,
     isFeatured: false,
@@ -61,10 +68,16 @@ export default function EditProductPage({ params }) {
         const product = data.data;
         setFormData({
           name: product.name || "",
+          nameFa: product.name_fa || "",
+          namePs: product.name_ps || "",
           description: product.description || "",
+          descriptionFa: product.description_fa || "",
+          descriptionPs: product.description_ps || "",
           category: product.category_slug || "",
           source: product.source_slug || "",
           unit: product.unit || "",
+          unitFa: product.unit_fa || "",
+          unitPs: product.unit_ps || "",
           image: product.image_path || "",
           isActive: product.is_active === 1,
           isFeatured: product.is_featured === 1,
@@ -111,6 +124,32 @@ export default function EditProductPage({ params }) {
       }
     };
   }, [imagePreviewUrl]);
+
+  useEffect(() => {
+    setImagePreviewError(false);
+  }, [imagePreviewUrl, formData.image]);
+
+  const previewImageSrc = (() => {
+    const rawSrc = imagePreviewUrl || formData.image || "";
+    if (!rawSrc) return "";
+
+    const normalizedSrc = rawSrc.replace(/\\/g, "/");
+    if (
+      normalizedSrc.startsWith("/") ||
+      normalizedSrc.startsWith("http://") ||
+      normalizedSrc.startsWith("https://") ||
+      normalizedSrc.startsWith("blob:") ||
+      normalizedSrc.startsWith("data:")
+    ) {
+      return normalizedSrc;
+    }
+
+    if (normalizedSrc.startsWith("public/")) {
+      return `/${normalizedSrc.slice("public/".length)}`;
+    }
+
+    return `/${normalizedSrc}`;
+  })();
 
   const fetchCategories = async () => {
     const res = await fetch("/api/admin/categories");
@@ -377,6 +416,36 @@ export default function EditProductPage({ params }) {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Product Name (Farsi)
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameFa}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nameFa: e.target.value })
+                  }
+                  placeholder="Product name in Farsi"
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Product Name (Pashto)
+                </label>
+                <input
+                  type="text"
+                  value={formData.namePs}
+                  onChange={(e) =>
+                    setFormData({ ...formData, namePs: e.target.value })
+                  }
+                  placeholder="Product name in Pashto"
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Category *
                 </label>
                 <select
@@ -434,6 +503,36 @@ export default function EditProductPage({ params }) {
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Unit (Farsi)
+                </label>
+                <input
+                  type="text"
+                  value={formData.unitFa}
+                  onChange={(e) =>
+                    setFormData({ ...formData, unitFa: e.target.value })
+                  }
+                  placeholder="Unit in Farsi"
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Unit (Pashto)
+                </label>
+                <input
+                  type="text"
+                  value={formData.unitPs}
+                  onChange={(e) =>
+                    setFormData({ ...formData, unitPs: e.target.value })
+                  }
+                  placeholder="Unit in Pashto"
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
                   Product Image
                 </label>
                 <div className="space-y-2">
@@ -459,6 +558,36 @@ export default function EditProductPage({ params }) {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={3}
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Description (Farsi)
+                </label>
+                <textarea
+                  value={formData.descriptionFa}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFa: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Product description in Farsi..."
+                  className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Description (Pashto)
+                </label>
+                <textarea
+                  value={formData.descriptionPs}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionPs: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Product description in Pashto..."
                   className="w-full rounded-xl border-0 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 ring-1 ring-slate-200 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-900 dark:text-white dark:ring-slate-700"
                 />
               </div>
@@ -772,24 +901,26 @@ export default function EditProductPage({ params }) {
           </div>
 
           {/* Image Preview */}
-          {(imagePreviewUrl || formData.image) && (
+          {previewImageSrc && (
             <div className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
               <h3 className="mb-4 font-semibold text-slate-900 dark:text-white">
                 Image Preview
               </h3>
               <div className="relative aspect-square overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-700">
-                {(imagePreviewUrl || formData.image) && (
+                {!imagePreviewError ? (
                   <Image
-                    src={imagePreviewUrl || formData.image}
+                    src={previewImageSrc}
                     alt={formData.name || "Image preview"}
                     fill
                     className="object-cover"
                     sizes="100%"
                     unoptimized
-                    onError={(e) => {
-                      e.currentTarget.style.display = "none";
-                    }}
+                    onError={() => setImagePreviewError(true)}
                   />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                    Image preview unavailable
+                  </div>
                 )}
               </div>
             </div>
