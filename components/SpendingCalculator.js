@@ -17,6 +17,7 @@ import {
   ShoppingBagIcon,
   CalculatorIcon,
   MinusIcon,
+  DocumentArrowDownIcon,
 } from "@heroicons/react/24/outline";
 import { useCurrency } from "@/lib/context/CurrencyContext";
 import { useI18n } from "@/lib/i18n/useI18n";
@@ -25,7 +26,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   { items = [], isOpen, onClose },
   ref,
 ) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { formatPrice, currentCurrency, exchangeRates, afnLabel } =
     useCurrency();
   const [searchQuery, setSearchQuery] = useState("");
@@ -36,6 +37,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const [showDropdown, setShowDropdown] = useState(false);
   const searchRef = useRef(null);
   const dropdownRef = useRef(null);
+  const vazirFontBase64Ref = useRef(null);
 
   // Get calculator config
   const calcConfig = useMemo(() => {
@@ -123,6 +125,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
         item,
         newBasket[existingIndex].quantity,
       );
+      newBasket[existingIndex].updatedAt = new Date().toISOString();
       setBasket(newBasket);
     } else {
       setBasket([
@@ -131,6 +134,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
           ...item,
           quantity: quantityToAdd,
           totalPrice: totalPrice,
+          addedAt: new Date().toISOString(),
         },
       ]);
     }
@@ -169,6 +173,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             ...basketItem,
             quantity: newQuantity,
             totalPrice: calculatePrice(basketItem, newQuantity),
+            updatedAt: new Date().toISOString(),
           };
         }
         return basketItem;
@@ -183,6 +188,202 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const formatQuantity = (qty, step) => {
     if (!step || step >= 1 || qty % 1 === 0) return qty;
     return qty.toFixed(2);
+  };
+
+  const formatItemDate = (value) => {
+    const parsedDate = value ? new Date(value) : new Date();
+    if (Number.isNaN(parsedDate.getTime())) {
+      return new Date().toLocaleDateString();
+    }
+    return parsedDate.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const arrayBufferToBase64 = (buffer) => {
+    const bytes = new Uint8Array(buffer);
+    const chunkSize = 0x8000;
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, i + chunkSize);
+      binary += String.fromCharCode(...chunk);
+    }
+    return btoa(binary);
+  };
+
+  const ensureVazirFont = async (doc) => {
+    if (!vazirFontBase64Ref.current) {
+      const response = await fetch("/fonts/Vazir-Regular.ttf");
+      if (!response.ok) {
+        throw new Error("Failed to load Vazir font");
+      }
+      const fontBuffer = await response.arrayBuffer();
+      vazirFontBase64Ref.current = arrayBufferToBase64(fontBuffer);
+    }
+    doc.addFileToVFS("Vazir-Regular.ttf", vazirFontBase64Ref.current);
+    doc.addFont("Vazir-Regular.ttf", "Vazir", "normal");
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!basket.length) return;
+    const [{ jsPDF }, autoTableModule] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+    const autoTable = autoTableModule.default;
+
+    const isRtl = locale === "fa" || locale === "ps";
+    const localeCode =
+      locale === "fa" ? "fa-AF" : locale === "ps" ? "ps-AF" : "en-US";
+    const solarDateFormatter = new Intl.DateTimeFormat(
+      `${localeCode}-u-ca-persian`,
+      {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      },
+    );
+    const exportedAt = new Date();
+    const currencyLabel =
+      currentCurrency.code === "AFN" ? afnLabel : currentCurrency.code;
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+    if (isRtl) {
+      await ensureVazirFont(doc);
+      doc.setFont("Vazir", "normal");
+    }
+
+    const shapeText = (value) => {
+      const text = String(value ?? "");
+      if (isRtl && typeof doc.processArabic === "function") {
+        return doc.processArabic(text);
+      }
+      return text;
+    };
+
+    const toPersianDigits = (value) => {
+      if (!isRtl) return String(value ?? "");
+      return String(value ?? "").replace(/\d/g, (digit) =>
+        "۰۱۲۳۴۵۶۷۸۹"[Number(digit)],
+      );
+    };
+
+    const formatSolarDate = (dateValue) => {
+      const parts = solarDateFormatter.formatToParts(dateValue);
+      const day = parts.find((part) => part.type === "day")?.value ?? "";
+      const month = parts.find((part) => part.type === "month")?.value ?? "";
+      const year = parts.find((part) => part.type === "year")?.value ?? "";
+      return `${toPersianDigits(day)}/${toPersianDigits(month)}/${toPersianDigits(year)}`;
+    };
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 40;
+    const rightX = pageWidth - margin;
+    const leftX = margin;
+    const titleX = isRtl ? rightX : leftX;
+    const textAlign = isRtl ? "right" : "left";
+
+    doc.setFontSize(18);
+    doc.text(shapeText(t("calculator.pdfExportTitle")), titleX, 44, {
+      align: textAlign,
+    });
+
+    doc.setFontSize(11);
+    doc.setTextColor(71, 85, 105);
+    doc.text(
+      shapeText(
+        `${t("calculator.pdfExportedOn")}: ${formatSolarDate(exportedAt)}`,
+      ),
+      titleX,
+      64,
+      { align: textAlign },
+    );
+
+    const bodyRows = basket.map((item, index) => {
+      const itemDate = item.updatedAt || item.addedAt;
+      const parsedDate = itemDate ? new Date(itemDate) : new Date();
+      const rowDate = Number.isNaN(parsedDate.getTime())
+        ? formatSolarDate(new Date())
+        : formatSolarDate(parsedDate);
+      const config = item.calculator || {};
+      const localizedName =
+        locale === "fa"
+          ? item.nameFa || item.name_fa || item.name
+          : locale === "ps"
+            ? item.namePs || item.name_ps || item.name
+            : item.name;
+      const englishUnit =
+        item.calculator?.displayUnit || config.displayUnit || "unit";
+      const quantityLabel = `${formatQuantity(item.quantity, config.step)} ${englishUnit}`;
+      const row = [
+        shapeText(toPersianDigits(String(index + 1))),
+        shapeText(localizedName),
+        shapeText(toPersianDigits(quantityLabel)),
+        shapeText(`${toPersianDigits(formatDisplayPrice(item.totalPrice))} ${currencyLabel}`),
+        shapeText(rowDate),
+      ];
+      return isRtl ? row.reverse() : row;
+    });
+
+    const headers = [
+      shapeText("#"),
+      shapeText(t("calculator.pdfItem")),
+      shapeText(t("calculator.pdfQuantity")),
+      shapeText(t("calculator.pdfPrice")),
+      shapeText(t("calculator.pdfDate")),
+    ];
+    const tableHead = isRtl ? headers.reverse() : headers;
+    const indexColumn = isRtl ? 4 : 0;
+
+    autoTable(doc, {
+      startY: 80,
+      head: [tableHead],
+      body: bodyRows,
+      styles: {
+        font: isRtl ? "Vazir" : "helvetica",
+        fontSize: 10,
+        halign: isRtl ? "right" : "left",
+        cellPadding: 6,
+      },
+      headStyles: {
+        fillColor: [241, 245, 249],
+        textColor: [15, 23, 42],
+        fontStyle: isRtl ? "normal" : "bold",
+        halign: isRtl ? "right" : "left",
+      },
+      columnStyles: {
+        [indexColumn]: { halign: "center", cellWidth: 34 },
+      },
+      margin: { left: margin, right: margin },
+      tableWidth: "auto",
+    });
+
+    let currentY = doc.lastAutoTable.finalY + 22;
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(12);
+    doc.text(
+      shapeText(
+        `${t("calculator.totalEstimated")}: ${toPersianDigits(formatDisplayPrice(total))} ${currencyLabel}`,
+      ),
+      titleX,
+      currentY,
+      { align: textAlign },
+    );
+
+    currentY += 24;
+    doc.setFontSize(10);
+    doc.setTextColor(124, 45, 18);
+    doc.text(
+      shapeText(`${t("calculator.pdfNoteLabel")}: ${t("calculator.pdfDisclaimer")}`),
+      titleX,
+      currentY,
+      { align: textAlign, maxWidth: pageWidth - margin * 2 },
+    );
+
+    const fileNameDate = exportedAt.toISOString().slice(0, 10);
+    doc.save(`spending-list-${fileNameDate}.pdf`);
   };
 
   const getDisplayUnit = (item, config) => {
@@ -536,7 +737,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
         {/* Total Footer */}
         {basket.length > 0 && (
           <div className="border-t border-slate-200 bg-linear-to-r from-slate-50 to-slate-100 p-5 dark:border-slate-700 dark:from-slate-800 dark:to-slate-800/50">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {t("calculator.totalEstimated")}
@@ -573,6 +774,15 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   </>
                 )}
               </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={handleDownloadPdf}
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+              >
+                <DocumentArrowDownIcon className="h-4 w-4" />
+                {t("calculator.downloadPdf")}
+              </button>
             </div>
           </div>
         )}
