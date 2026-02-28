@@ -13,6 +13,7 @@ import ProductModal from "@/components/ProductModal";
 import SpendingCalculator, {
   CalculatorFAB,
 } from "@/components/SpendingCalculator";
+import SiteFooter from "@/components/SiteFooter";
 import FullScreenLoader from "@/components/FullScreenLoader";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
@@ -454,6 +455,7 @@ function HomeContent({ items, categories, loading, error }) {
         isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
         onToggleFavorite={toggleFavorite}
       />
+      <SiteFooter />
     </div>
   );
 }
