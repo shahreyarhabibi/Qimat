@@ -74,7 +74,21 @@ export default function ProductModal({
   }, [chartData]);
 
   const priceBreakdown = useMemo(() => {
-    if (!item?.calculator) return null;
+    if (!item) return null;
+
+    if (Array.isArray(item.priceUnits) && item.priceUnits.length > 0) {
+      const baseQuantity = item.calculator?.baseQuantity || 1;
+      const pricePerBaseUnit = convertPrice(item.price) / baseQuantity;
+      return item.priceUnits
+        .filter((unit) => unit && unit.label && Number(unit.multiplier) > 0)
+        .map((unit) => ({
+          label: unit.label,
+          multiplier: Number(unit.multiplier),
+          price: pricePerBaseUnit * Number(unit.multiplier),
+        }));
+    }
+
+    if (!item.calculator) return null;
     const config = item.calculator;
     if (config.displayUnit !== "kg" || !config.baseQuantity) return null;
 
@@ -95,10 +109,16 @@ export default function ProductModal({
     }
 
     return entries.map((entry) => ({
-      ...entry,
+      label: entry.label,
+      multiplier: entry.qty,
       price: pricePerKg * entry.qty,
     }));
   }, [item, convertPrice]);
+
+  const compactBreakdown = useMemo(() => {
+    if (!Array.isArray(priceBreakdown) || priceBreakdown.length <= 1) return [];
+    return priceBreakdown.slice(0, 6);
+  }, [priceBreakdown]);
 
   const isUpTrend = priceStats?.change >= 0;
 
@@ -241,23 +261,24 @@ export default function ProductModal({
                   </div>
                 </div>
 
-                {priceBreakdown && (
-                  <div className="mt-4 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/60">
+                {compactBreakdown.length > 0 && (
+                  <div className="mt-3">
                     <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       {t("productModal.priceBreakdown")}
                     </p>
-                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-                      {priceBreakdown.map((entry) => (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {compactBreakdown.map((entry) => (
                         <div
                           key={entry.label}
-                          className="rounded-lg bg-white px-3 py-2 text-center shadow-sm ring-1 ring-slate-200/60 dark:bg-slate-900 dark:ring-slate-700/60"
+                          className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700"
                         >
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                          <span className="font-medium text-slate-600 dark:text-slate-300">
                             {entry.label}
-                          </p>
-                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                            {formatPrice(entry.price)}
-                          </p>
+                          </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {formatDisplayPrice(entry.price)}
+                            {currentCurrency.code === "AFN" ? afnLabel : ""}
+                          </span>
                         </div>
                       ))}
                     </div>
