@@ -57,7 +57,9 @@ export default function TopNav({
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
   const [notificationPermission, setNotificationPermission] = useState(() =>
-    typeof Notification === "undefined" ? "unsupported" : Notification.permission,
+    typeof Notification === "undefined"
+      ? "unsupported"
+      : Notification.permission,
   );
   const [pushClientId] = useState(() => getOrCreatePushClientId());
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
@@ -78,28 +80,130 @@ export default function TopNav({
   useEffect(() => {
     let isMounted = true;
 
-    const fetchTickerConfig = async () => {
+    // ✅ Delay ticker fetch - use fallback items immediately
+    const timeoutId = setTimeout(async () => {
       try {
-        const res = await fetch("/api/admin/ticker", { cache: "no-store" });
-        if (!res.ok) return;
-
-        const contentType = res.headers.get("content-type") || "";
-        if (!contentType.includes("application/json")) return;
+        const res = await fetch("/api/admin/ticker");
+        if (!res.ok || !isMounted) return;
 
         const data = await res.json();
-        if (!isMounted || !data?.success || !Array.isArray(data.data)) return;
+        if (!data?.success || !Array.isArray(data.data)) return;
 
         setTickerProductIds(data.data.map((item) => String(item.id)));
       } catch {
-        // Keep fallback ticker when API is unavailable.
+        // Fallback ticker already works
+      }
+    }, 1500); // ✅ Wait 1.5 seconds - ticker works without this
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Replace the notification fetch useEffect with this:
+  useEffect(() => {
+    const storedIds =
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("qimat_notified_ids") || "[]")
+        : [];
+    notifiedIdsRef.current = new Set(Array.isArray(storedIds) ? storedIds : []);
+
+    const fetchNotificationCount = async () => {
+      try {
+        const res = await fetch("/api/notifications?days=1&limit=100");
+        const data = await res.json();
+        if (data.success) {
+          setNotificationCount(data.data.todayCount);
+
+          // Browser notifications logic stays the same...
+          if (
+            notificationPermission === "granted" &&
+            Array.isArray(favoriteIds) &&
+            favoriteIds.length > 0
+          ) {
+            const favoriteSet = new Set(favoriteIds.map((id) => Number(id)));
+            const favoriteNotifications = data.data.notifications.filter((n) =>
+              favoriteSet.has(Number(n.productId)),
+            );
+
+            const newNotifications = favoriteNotifications.filter(
+              (n) => !notifiedIdsRef.current.has(n.id),
+            );
+
+            newNotifications.forEach((n) => {
+              const direction = n.isIncrease ? "up" : "down";
+              const symbol = n.isIncrease ? "+" : "-";
+              const amount = Math.round(
+                Math.abs(n.changeAmount),
+              ).toLocaleString();
+
+              new Notification(n.productName, {
+                body: `${symbol}${amount} ${
+                  currentCurrency.code === "AFN"
+                    ? afnLabel
+                    : currentCurrency.code
+                } (${direction})`,
+                tag: `qimat-${n.id}`,
+              });
+
+              notifiedIdsRef.current.add(n.id);
+            });
+
+            const recentIds = Array.from(notifiedIdsRef.current).slice(-200);
+            localStorage.setItem(
+              "qimat_notified_ids",
+              JSON.stringify(recentIds),
+            );
+            notifiedIdsRef.current = new Set(recentIds);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching notification count:", error);
       }
     };
 
-    fetchTickerConfig();
+    // ✅ Delay initial fetch - not critical for first render
+    const initialTimeout = setTimeout(fetchNotificationCount, 2000);
+    const interval = setInterval(fetchNotificationCount, 5 * 60 * 1000);
+
     return () => {
-      isMounted = false;
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
     };
-  }, []);
+  }, [favoriteIds, notificationPermission, currentCurrency.code, afnLabel]);
+
+  // ✅ Only sync preferences when favorites actually change
+  const prevFavoriteIdsRef = useRef(JSON.stringify(favoriteIds));
+
+  useEffect(() => {
+    if (!pushClientId) return;
+
+    const currentIds = JSON.stringify(favoriteIds);
+
+    // Skip if favorites haven't changed
+    if (currentIds === prevFavoriteIdsRef.current) {
+      return;
+    }
+
+    prevFavoriteIdsRef.current = currentIds;
+
+    // ✅ Debounce the sync
+    const timeoutId = setTimeout(() => {
+      fetch("/api/push/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: pushClientId,
+          favoriteIds,
+        }),
+      }).catch((error) => {
+        console.error("Failed to sync favorite preferences:", error);
+      });
+    }, 2000); // Wait 2 seconds before syncing
+
+    return () => clearTimeout(timeoutId);
+  }, [favoriteIds, pushClientId]);
 
   useEffect(() => {
     let mounted = true;
@@ -154,7 +258,9 @@ export default function TopNav({
             newNotifications.forEach((n) => {
               const direction = n.isIncrease ? "up" : "down";
               const symbol = n.isIncrease ? "+" : "-";
-              const amount = Math.round(Math.abs(n.changeAmount)).toLocaleString();
+              const amount = Math.round(
+                Math.abs(n.changeAmount),
+              ).toLocaleString();
 
               new Notification(n.productName, {
                 body: `${symbol}${amount} ${
@@ -169,7 +275,10 @@ export default function TopNav({
             });
 
             const recentIds = Array.from(notifiedIdsRef.current).slice(-200);
-            localStorage.setItem("qimat_notified_ids", JSON.stringify(recentIds));
+            localStorage.setItem(
+              "qimat_notified_ids",
+              JSON.stringify(recentIds),
+            );
             notifiedIdsRef.current = new Set(recentIds);
           }
         }

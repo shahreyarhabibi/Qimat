@@ -2,10 +2,25 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@libsql/client";
 
-const client = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
-});
+// ✅ Reuse client (singleton)
+let client = null;
+function getClient() {
+  if (!client) {
+    client = createClient({
+      url: process.env.TURSO_DATABASE_URL,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    });
+  }
+  return client;
+}
+
+// ✅ Cache layer
+const cache = {
+  data: null,
+  timestamp: 0,
+  key: "",
+};
+const CACHE_TTL = 60 * 1000; // 1 minute
 
 function formatDate(date) {
   return date.toISOString().split("T")[0];
@@ -25,10 +40,23 @@ export async function GET(request) {
     const days = parseInt(searchParams.get("days") || "7", 10);
     const limit = parseInt(searchParams.get("limit") || "50", 10);
 
+    const cacheKey = `${days}-${limit}`;
+    const now = Date.now();
+
+    // ✅ Return cached if fresh
+    if (
+      cache.data &&
+      cache.key === cacheKey &&
+      now - cache.timestamp < CACHE_TTL
+    ) {
+      return NextResponse.json(cache.data, {
+        headers: { "X-Cache": "HIT" },
+      });
+    }
+
     const startDate = getDateDaysAgo(days);
 
-    // Get all price changes in the last N days
-    const result = await client.execute({
+    const result = await getClient().execute({
       sql: `
         WITH price_changes AS (
           SELECT 
@@ -67,7 +95,6 @@ export async function GET(request) {
       args: [startDate, limit],
     });
 
-    // Group by date for better organization
     const notifications = result.rows.map((row, index) => {
       const changeAmount = row.change_amount;
       const changePercent = row.previous_price
@@ -92,17 +119,25 @@ export async function GET(request) {
       };
     });
 
-    // Count unread (changes from today)
     const today = formatDate(new Date());
     const todayCount = notifications.filter((n) => n.date === today).length;
 
-    return NextResponse.json({
+    const responseData = {
       success: true,
       data: {
         notifications,
         todayCount,
         totalCount: notifications.length,
       },
+    };
+
+    // ✅ Update cache
+    cache.data = responseData;
+    cache.timestamp = now;
+    cache.key = cacheKey;
+
+    return NextResponse.json(responseData, {
+      headers: { "X-Cache": "MISS" },
     });
   } catch (error) {
     console.error("Error fetching notifications:", error);

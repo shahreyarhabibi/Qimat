@@ -1,6 +1,7 @@
 // app/layout.js
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { initializeDatabase } from "@/lib/db/init";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -8,6 +9,8 @@ export const metadata = {
   title: "Qimat - Real-time Prices",
   description: "Track prices of goods, phones, currencies, and fuels.",
 };
+
+initializeDatabase();
 
 export default function RootLayout({ children }) {
   return (
