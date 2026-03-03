@@ -13,6 +13,7 @@ import ProductModal from "@/components/ProductModal";
 import SpendingCalculator, {
   CalculatorFAB,
 } from "@/components/SpendingCalculator";
+import FullScreenLoader from "@/components/FullScreenLoader";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
   MagnifyingGlassIcon,
@@ -108,34 +109,7 @@ function HomeContent({ items, categories, loading, error }) {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <TopNav
-          items={[]}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          favoriteIds={favoriteIds}
-        />
-        <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
-          <div className="flex gap-8">
-            <div className="min-w-0 flex-1">
-              <div className="mb-8 h-14 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
-              <div className="grid grid-cols-2 gap-5 lg:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="h-72 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="hidden w-85 shrink-0 lg:block xl:w-95">
-              <div className="h-125 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
-            </div>
-          </div>
-        </main>
-      </div>
-    );
+    return <FullScreenLoader />;
   }
 
   if (error) {
