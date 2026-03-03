@@ -185,6 +185,13 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     return qty.toFixed(2);
   };
 
+  const getDisplayUnit = (item, config) => {
+    const configUnit =
+      typeof config?.displayUnit === "string" ? config.displayUnit.trim() : "";
+    if (configUnit) return configUnit;
+    return item?.unit || t("calculator.unit");
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -386,7 +393,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     </button>
                   </div>
                   <span className="min-w-12.5 text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {calcConfig.displayUnit}
+                    {getDisplayUnit(selectedItem, calcConfig)}
                   </span>
                 </div>
               </div>
@@ -396,7 +403,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
                     {t("calculator.subtotal")} ({formatQuantity(quantity, calcConfig.step)}{" "}
-                    {calcConfig.displayUnit})
+                    {getDisplayUnit(selectedItem, calcConfig)})
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
                     {formatDisplayPrice(calculatePrice(selectedItem, quantity))}
@@ -441,6 +448,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                   step: 1,
                   displayUnit: t("calculator.unit"),
                 };
+                const displayUnit = getDisplayUnit(item, config);
                 return (
                   <div
                     key={item.id}
@@ -452,7 +460,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         {formatQuantity(item.quantity, config.step)}{" "}
-                        {config.displayUnit}
+                        {displayUnit}
                       </p>
                     </div>
 
