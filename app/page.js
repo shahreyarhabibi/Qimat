@@ -1,10 +1,10 @@
 ﻿// app/page.js
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { useFavorites } from "@/lib/hooks/useFavorites";
-import { CurrencyProvider } from "@/lib/context/CurrencyContext";
+import { CurrencyProvider, useCurrency } from "@/lib/context/CurrencyContext";
 import TopNav from "@/components/TopNav";
 import FilterBar from "@/components/FilterBar";
 import PriceCard from "@/components/PriceCard";
@@ -39,6 +39,7 @@ export default function Home() {
 
 function HomeContent({ items, categories, loading, error }) {
   const { t } = useI18n();
+  const { selectedLanguage } = useCurrency();
   const { favoriteIds, favoriteSet, isFavorite, toggleFavorite } =
     useFavorites();
   const [searchQuery, setSearchQuery] = useState("");
@@ -54,13 +55,57 @@ function HomeContent({ items, categories, loading, error }) {
   const desktopCalcRef = useRef(null);
   const mobileCalcRef = useRef(null);
 
+  const pickLocalized = useCallback(
+    (enValue, faValue, psValue) => {
+      if (selectedLanguage === "fa" && faValue) return faValue;
+      if (selectedLanguage === "ps" && psValue) return psValue;
+      return enValue;
+    },
+    [selectedLanguage],
+  );
+
+  const localizedItems = useMemo(() => {
+    return items.map((item) => ({
+      ...item,
+      name: pickLocalized(item.name, item.nameFa, item.namePs),
+      unit: pickLocalized(item.unit, item.unitFa, item.unitPs),
+      description: pickLocalized(
+        item.description,
+        item.descriptionFa,
+        item.descriptionPs,
+      ),
+      source: item.source
+        ? {
+            ...item.source,
+            name: pickLocalized(
+              item.source.name,
+              item.source.nameFa,
+              item.source.namePs,
+            ),
+            shortName: pickLocalized(
+              item.source.shortName,
+              item.source.shortNameFa,
+              item.source.shortNamePs,
+            ),
+          }
+        : item.source,
+    }));
+  }, [items, pickLocalized]);
+
+  const localizedCategories = useMemo(() => {
+    return categories.map((cat) => ({
+      ...cat,
+      name: pickLocalized(cat.name, cat.nameFa, cat.namePs),
+    }));
+  }, [categories, pickLocalized]);
+
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
     localStorage.setItem("qimat_view_mode", mode);
   };
 
   const filteredItems = useMemo(() => {
-    const filtered = items.filter((item) => {
+    const filtered = localizedItems.filter((item) => {
       const matchesSearch = item.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
@@ -91,7 +136,13 @@ function HomeContent({ items, categories, loading, error }) {
     });
 
     return indexed.map((entry) => entry.item);
-  }, [items, searchQuery, selectedCategory, favoriteIds.length, favoriteSet]);
+  }, [
+    localizedItems,
+    searchQuery,
+    selectedCategory,
+    favoriteIds.length,
+    favoriteSet,
+  ]);
 
   const handleOpenModal = (item) => {
     setSelectedItem(item);
@@ -145,7 +196,7 @@ function HomeContent({ items, categories, loading, error }) {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <TopNav
-        items={items}
+        items={localizedItems}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         favoriteIds={favoriteIds}
@@ -156,7 +207,7 @@ function HomeContent({ items, categories, loading, error }) {
           <div className="min-w-0 flex-1">
             <div className="mb-8">
               <FilterBar
-                categories={categories}
+                categories={localizedCategories}
                 selectedCategory={selectedCategory}
                 setSelectedCategory={setSelectedCategory}
               />
@@ -269,7 +320,7 @@ function HomeContent({ items, categories, loading, error }) {
             <div className="sticky top-32">
               <SpendingCalculator
                 ref={desktopCalcRef}
-                items={items}
+                items={localizedItems}
                 isOpen={true}
                 onClose={() => {}}
               />
@@ -282,7 +333,7 @@ function HomeContent({ items, categories, loading, error }) {
       <div className="lg:hidden">
         <SpendingCalculator
           ref={mobileCalcRef}
-          items={items}
+          items={localizedItems}
           isOpen={calculatorOpen}
           onClose={() => setCalculatorOpen(false)}
         />
