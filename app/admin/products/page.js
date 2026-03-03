@@ -11,6 +11,7 @@ import {
   MagnifyingGlassIcon,
   EyeIcon,
   EyeSlashIcon,
+  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
 export default function ProductsPage() {
@@ -20,6 +21,7 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [categories, setCategories] = useState([]);
   const [deleteModal, setDeleteModal] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetchProducts();
@@ -53,6 +55,9 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id) => {
+    if (deletingId === id) return;
+
+    setDeletingId(id);
     try {
       const res = await fetch(`/api/admin/products/${id}`, {
         method: "DELETE",
@@ -64,6 +69,8 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error deleting product:", error);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -306,15 +313,24 @@ export default function ProductsPage() {
             <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setDeleteModal(null)}
+                disabled={deletingId === deleteModal.id}
                 className="flex-1 rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(deleteModal.id)}
-                className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-rose-700"
+                disabled={deletingId === deleteModal.id}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Delete
+                {deletingId === deleteModal.id ? (
+                  <>
+                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
               </button>
             </div>
           </div>

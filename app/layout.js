@@ -2,6 +2,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { initializeDatabase } from "@/lib/db/init";
+import VisitTracker from "@/components/VisitTracker";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
             `,
           }}
         />
+        <VisitTracker />
         {children}
       </body>
     </html>
