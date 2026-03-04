@@ -47,6 +47,7 @@ function HomeContent({ items, categories, loading, error }) {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [viewMode, setViewMode] = useState(() => {
     if (typeof window === "undefined") return "grid";
     const saved = localStorage.getItem("qimat_view_mode");
@@ -101,18 +102,30 @@ function HomeContent({ items, categories, loading, error }) {
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
+    setCurrentPage(1);
     localStorage.setItem("qimat_view_mode", mode);
   };
+
+  const handleSearchQueryChange = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
+
+  const handleCategoryChange = (value) => {
+    setSelectedCategory(value);
+    setCurrentPage(1);
+  };
+
+  const itemsPerPage = viewMode === "grid" ? 15 : 18;
 
   const filteredItems = useMemo(() => {
     const filtered = localizedItems.filter((item) => {
       const matchesSearch = item.name
         .toLowerCase()
         .includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        !selectedCategory
-          ? true
-          : item.category === selectedCategory;
+      const matchesCategory = !selectedCategory
+        ? true
+        : item.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
 
@@ -144,6 +157,36 @@ function HomeContent({ items, categories, loading, error }) {
     favoriteSet,
   ]);
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredItems.length / itemsPerPage),
+  );
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedItems = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+    return filteredItems.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredItems, safeCurrentPage, itemsPerPage]);
+
+  const paginationItems = useMemo(() => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const pages = [1];
+    const start = Math.max(2, safeCurrentPage - 1);
+    const end = Math.min(totalPages - 1, safeCurrentPage + 1);
+
+    if (start > 2) pages.push("ellipsis-left");
+    for (let page = start; page <= end; page += 1) {
+      pages.push(page);
+    }
+    if (end < totalPages - 1) pages.push("ellipsis-right");
+    pages.push(totalPages);
+
+    return pages;
+  }, [safeCurrentPage, totalPages]);
+
   const handleOpenModal = (item) => {
     setSelectedItem(item);
     setIsModalOpen(true);
@@ -169,7 +212,7 @@ function HomeContent({ items, categories, loading, error }) {
         <TopNav
           items={[]}
           searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          setSearchQuery={handleSearchQueryChange}
           favoriteIds={favoriteIds}
         />
         <main className="flex min-h-[60vh] items-center justify-center px-6">
@@ -198,7 +241,7 @@ function HomeContent({ items, categories, loading, error }) {
       <TopNav
         items={localizedItems}
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleSearchQueryChange}
         favoriteIds={favoriteIds}
       />
 
@@ -209,7 +252,7 @@ function HomeContent({ items, categories, loading, error }) {
               <FilterBar
                 categories={localizedCategories}
                 selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
+                setSelectedCategory={handleCategoryChange}
               />
 
               <div className="relative mt-4 md:hidden">
@@ -218,7 +261,7 @@ function HomeContent({ items, categories, loading, error }) {
                   type="text"
                   placeholder={t("topNav.searchPlaceholder")}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchQueryChange(e.target.value)}
                   className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
                 />
               </div>
@@ -228,6 +271,14 @@ function HomeContent({ items, categories, loading, error }) {
               <div className="mb-4 flex items-center justify-between">
                 <p className="text-sm text-slate-500 dark:text-slate-400">
                   {t("home.showing")}{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {(safeCurrentPage - 1) * itemsPerPage + 1}-
+                    {Math.min(
+                      safeCurrentPage * itemsPerPage,
+                      filteredItems.length,
+                    )}
+                  </span>{" "}
+                  /{" "}
                   <span className="font-semibold text-slate-700 dark:text-slate-200">
                     {filteredItems.length}
                   </span>{" "}
@@ -267,7 +318,7 @@ function HomeContent({ items, categories, loading, error }) {
             {filteredItems.length > 0 ? (
               viewMode === "grid" ? (
                 <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
-                  {filteredItems.map((item) => (
+                  {paginatedItems.map((item) => (
                     <PriceCard
                       key={item.id}
                       item={item}
@@ -280,7 +331,7 @@ function HomeContent({ items, categories, loading, error }) {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {filteredItems.map((item) => (
+                  {paginatedItems.map((item) => (
                     <PriceListItem
                       key={item.id}
                       item={item}
@@ -312,6 +363,63 @@ function HomeContent({ items, categories, loading, error }) {
                 >
                   {t("home.viewAll")}
                 </button>
+              </div>
+            )}
+
+            {filteredItems.length > 0 && totalPages > 1 && (
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={safeCurrentPage === 1}
+                  className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                >
+                  {t("pagination.previous")}
+                </button>
+
+                {paginationItems.map((entry, index) => {
+                  if (typeof entry === "string") {
+                    return (
+                      <span
+                        key={`${entry}-${index}`}
+                        className="px-2 text-sm text-slate-400"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isActive = entry === safeCurrentPage;
+                  return (
+                    <button
+                      key={entry}
+                      onClick={() => setCurrentPage(entry)}
+                      className={`h-9 min-w-9 rounded-lg px-2 text-sm font-semibold transition ${
+                        isActive
+                          ? "bg-primary text-white"
+                          : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                      }`}
+                    >
+                      {entry}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={safeCurrentPage === totalPages}
+                  className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                >
+                  {t("pagination.next")}
+                </button>
+
+                <p className="w-full pt-1 text-center text-xs text-slate-500 dark:text-slate-400">
+                  {t("pagination.page")} {safeCurrentPage} {t("pagination.of")}{" "}
+                  {totalPages}
+                </p>
               </div>
             )}
           </div>
