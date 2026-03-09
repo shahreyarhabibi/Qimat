@@ -692,8 +692,15 @@ function TickerItem({ item }) {
   const isUp = item.change > 0;
   const isDown = item.change < 0;
 
-  const formatChange = (change) =>
-    Math.round(Math.abs(convertPrice(change))).toLocaleString();
+  const formatChange = (change) => {
+    const converted = Math.abs(convertPrice(change));
+    const isInteger = Number.isInteger(converted) || converted % 1 === 0;
+
+    return converted.toLocaleString(undefined, {
+      minimumFractionDigits: isInteger ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   return (
     <div className="flex shrink-0 items-center gap-2">

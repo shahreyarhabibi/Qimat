@@ -1,4 +1,4 @@
-﻿// components/PriceCard.jsx
+// components/PriceCard.jsx
 import Image from "next/image";
 import { MapPinIcon } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
@@ -19,7 +19,13 @@ export default function PriceCard({
   const isDecrease = item.change < 0;
 
   const formatChange = (change) => {
-    return Math.round(Math.abs(convertPrice(change))).toLocaleString();
+    const converted = Math.abs(convertPrice(change));
+    const isInteger = Number.isInteger(converted) || converted % 1 === 0;
+
+    return converted.toLocaleString(undefined, {
+      minimumFractionDigits: isInteger ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   const mainPrice =

@@ -1,4 +1,4 @@
-﻿// components/PriceListItem.jsx
+// components/PriceListItem.jsx
 "use client";
 
 import Image from "next/image";
@@ -66,7 +66,7 @@ export default function PriceListItem({
           <p className="text-sm font-bold text-slate-900 dark:text-white sm:text-base">
             {formatPrice(item.price, {
               showSymbol: true,
-              decimals: currentCurrency.code === "AFN" ? 0 : 2,
+              decimals: currentCurrency.code === "AFN" ? undefined : 2,
             })}
           </p>
 
