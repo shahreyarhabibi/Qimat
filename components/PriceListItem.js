@@ -15,8 +15,10 @@ export default function PriceListItem({
   onToggleFavorite,
 }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, afnLabel } = useCurrency();
+  const { formatPrice, currentCurrency, afnLabel, selectedLanguage } =
+    useCurrency();
   const isIncrease = item.change > 0;
+  const isRtl = selectedLanguage === "fa" || selectedLanguage === "ps";
 
   const formatChange = (change) => {
     const absChange = Math.abs(change);
@@ -27,9 +29,15 @@ export default function PriceListItem({
   return (
     <article
       onClick={() => onClick?.(item)}
-      className="group flex min-h-20 cursor-pointer items-center gap-3 rounded-xl bg-white px-3 py-2.5 shadow-sm ring-1 ring-slate-200/80 transition-all duration-200 hover:shadow-md hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600 sm:gap-4 sm:px-4"
+      className={`group flex min-h-19 cursor-pointer items-center gap-3 rounded-xl bg-white px-3 shadow-sm ring-1 ring-slate-200/80 transition-all duration-200 hover:shadow-md hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600 sm:min-h-16 sm:gap-4 sm:px-4 ${
+        isRtl ? "pl-1 pr-0 sm:pl-4" : "pl-0 pr-2 sm:pr-4"
+      }`}
     >
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-700 sm:h-16 sm:w-16">
+      <div
+        className={`relative h-19 w-19 shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700 sm:h-16 sm:w-16 ${
+          isRtl ? "rounded-r-lg" : "rounded-l-lg"
+        }`}
+      >
         <Image
           src={item.image || "/placeholder.jpg"}
           alt={item.name}
