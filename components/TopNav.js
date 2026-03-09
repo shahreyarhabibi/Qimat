@@ -8,6 +8,7 @@ import {
   SunIcon,
   MoonIcon,
   ChevronDownIcon,
+  Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
 import NotificationModal from "./NotificationModal";
 import { useCurrency, CURRENCIES } from "@/lib/context/CurrencyContext";
@@ -63,16 +64,24 @@ export default function TopNav({
   );
   const [pushClientId] = useState(() => getOrCreatePushClientId());
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const notifiedIdsRef = useRef(new Set());
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    setIsDarkMode(document.documentElement.classList.contains("dark"));
+  }, []);
 
   const toggleDarkMode = () => {
     const isDark = document.documentElement.classList.contains("dark");
     if (isDark) {
       document.documentElement.classList.remove("dark");
       localStorage.theme = "light";
+      setIsDarkMode(false);
     } else {
       document.documentElement.classList.add("dark");
       localStorage.theme = "dark";
+      setIsDarkMode(true);
     }
   };
 
@@ -432,7 +441,11 @@ export default function TopNav({
               </div>
 
               {/* Currency Selector */}
-              <CurrencySelector />
+              <CurrencySelector
+                toggleDarkMode={toggleDarkMode}
+                isDarkMode={isDarkMode}
+                toggleDarkLabel={t("topNav.toggleDark")}
+              />
 
               <HeaderActions
                 notificationCount={notificationCount}
@@ -440,6 +453,7 @@ export default function TopNav({
                   showNotificationDot || notificationCount > 0
                 }
                 toggleDarkMode={toggleDarkMode}
+                isDarkMode={isDarkMode}
                 onNotificationClick={() => setNotificationOpen(true)}
                 notificationsLabel={t("topNav.notifications")}
                 toggleDarkLabel={t("topNav.toggleDark")}
@@ -462,7 +476,7 @@ export default function TopNav({
 }
 
 // Currency Selector Component
-function CurrencySelector() {
+function CurrencySelector({ toggleDarkMode, isDarkMode, toggleDarkLabel }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const {
@@ -475,9 +489,9 @@ function CurrencySelector() {
     currentLanguage,
     languages,
     afnLabel,
-    getCurrencyLabel,
   } = useCurrency();
   const { t } = useI18n();
+  const isRtl = selectedLanguage === "fa" || selectedLanguage === "ps";
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -505,7 +519,7 @@ function CurrencySelector() {
             : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-700"
         }`}
       >
-        <span className="text-base leading-none">{currentCurrency.flag}</span>
+        <Cog6ToothIcon className="h-4 w-4" />
         <span className="hidden tracking-wide sm:inline">
           {currentCurrency.code === "AFN" ? afnLabel : currentCurrency.code}
           <span className="mx-1 text-slate-300 dark:text-slate-500">•</span>
@@ -522,7 +536,9 @@ function CurrencySelector() {
       {isOpen && (
         <div
           dir="ltr"
-          className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700"
+          className={`absolute top-full z-50 mt-2 w-56 max-w-[calc(100vw-1rem)] overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700 ${
+            isRtl ? "left-0" : "right-0"
+          }`}
         >
           <div className="p-2">
             <p className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
@@ -590,6 +606,12 @@ function CurrencySelector() {
             </p>
             {Object.values(languages).map((language) => {
               const isSelected = selectedLanguage === language.code;
+              const languageFlag =
+                language.code === "en"
+                  ? "🇺🇸"
+                  : language.code === "fa"
+                    ? "🇮🇷"
+                    : "🇦🇫";
 
               return (
                 <button
@@ -604,6 +626,7 @@ function CurrencySelector() {
                       : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
                   }`}
                 >
+                  <span className="text-lg leading-none">{languageFlag}</span>
                   <div className="flex-1">
                     <p className="font-medium">
                       {t(`languages.${language.code}`)}
@@ -629,6 +652,23 @@ function CurrencySelector() {
                 </button>
               );
             })}
+          </div>
+
+          <div className="border-t border-slate-200 p-2 md:hidden dark:border-slate-700">
+            <button
+              onClick={() => {
+                toggleDarkMode();
+                setIsOpen(false);
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              {isDarkMode ? (
+                <SunIcon className="h-5 w-5 text-amber-400" />
+              ) : (
+                <MoonIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+              )}
+              <span className="font-medium">{toggleDarkLabel}</span>
+            </button>
           </div>
 
           {/* Rate Info */}
@@ -740,6 +780,7 @@ function HeaderActions({
   notificationCount,
   showNotificationDot,
   toggleDarkMode,
+  isDarkMode,
   onNotificationClick,
   notificationsLabel,
   toggleDarkLabel,
@@ -748,12 +789,15 @@ function HeaderActions({
     <div className="flex shrink-0 items-center gap-1">
       <button
         onClick={toggleDarkMode}
-        className="rounded-xl p-2.5 transition hover:bg-white hover:shadow-sm dark:hover:bg-slate-800"
+        className="hidden rounded-xl p-2.5 transition hover:bg-white hover:shadow-sm md:block dark:hover:bg-slate-800"
         aria-label={toggleDarkLabel}
         title={toggleDarkLabel}
       >
-        <SunIcon className="hidden h-5 w-5 text-amber-400 dark:block" />
-        <MoonIcon className="h-5 w-5 text-slate-600 dark:hidden" />
+        {isDarkMode ? (
+          <SunIcon className="h-5 w-5 text-amber-400" />
+        ) : (
+          <MoonIcon className="h-5 w-5 text-slate-600 dark:text-slate-300" />
+        )}
       </button>
 
       <button

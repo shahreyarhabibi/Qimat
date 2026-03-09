@@ -15,7 +15,7 @@ initializeDatabase();
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="fa" dir="rtl" suppressHydrationWarning>
       <body className={inter.className}>
         {/* Simple script to set dark mode based on localStorage or system preference */}
         <script
