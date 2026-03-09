@@ -44,7 +44,7 @@ export default function PriceListItem({
           <h3 className="truncate text-sm font-semibold text-slate-900 dark:text-white sm:text-base">
             {item.name}
           </h3>
-          <span className="shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300 sm:text-[11px]">
+          <span className="hidden shrink-0 rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300 sm:inline-flex sm:text-[11px]">
             {item.unit}
           </span>
         </div>

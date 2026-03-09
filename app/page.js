@@ -246,7 +246,7 @@ function HomeContent({ items, categories, loading, error }) {
         favoriteIds={favoriteIds}
       />
 
-      <main className="mx-auto max-w-350 px-6 py-8 lg:px-8">
+      <main className="mx-auto max-w-350 px-5 py-8 sm:px-6 lg:px-8">
         <div className="flex gap-8">
           <div className="min-w-0 flex-1">
             <div className="mb-8">

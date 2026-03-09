@@ -13,10 +13,11 @@ export default function PriceCard({
   onToggleFavorite,
 }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, convertPrice, afnLabel } =
+  const { formatPrice, currentCurrency, convertPrice, afnLabel, selectedLanguage } =
     useCurrency();
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
+  const isRtl = selectedLanguage === "fa" || selectedLanguage === "ps";
 
   const formatChange = (change) => {
     const converted = Math.abs(convertPrice(change));
@@ -58,7 +59,9 @@ export default function PriceCard({
             e.stopPropagation();
             onToggleFavorite?.(item.id);
           }}
-          className={`absolute bottom-2 left-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition ${
+          className={`absolute bottom-2 z-20 inline-flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-sm transition ${
+            isRtl ? "left-2" : "right-2"
+          } ${
             isFavorite
               ? "bg-rose-500 text-white"
               : "bg-white/90 text-slate-500 hover:text-rose-500 dark:bg-slate-900/90 dark:text-slate-300"
@@ -72,6 +75,17 @@ export default function PriceCard({
         >
           <HeartSolidIcon className="h-4 w-4" />
         </button>
+
+        <div className={`absolute bottom-2 z-20 ${isRtl ? "right-2" : "left-2"}`}>
+          <span className="inline-flex items-baseline gap-1 rounded-full bg-black/65 px-2.5 py-1 text-sm font-bold text-white shadow-sm backdrop-blur-sm">
+            <span className="whitespace-nowrap">{mainPrice}</span>
+            {currentCurrency.code === "AFN" && (
+              <span className="whitespace-nowrap text-[10px] font-medium text-white/80">
+                {afnLabel}
+              </span>
+            )}
+          </span>
+        </div>
 
         {item.change !== 0 && (
           <div className="absolute right-2 top-2 z-10">
@@ -122,26 +136,13 @@ export default function PriceCard({
       </div>
 
       <div className="flex flex-1 flex-col p-3 md:p-4">
-        <div className="flex items-center justify-between">
-          <div className="mb-2">
-            <h3 className="text-sm font-semibold leading-tight text-slate-900 dark:text-white md:text-base">
-              {item.name}
-            </h3>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-              {item.unit}
-            </p>
-          </div>
-
-          <div className="mb-3 flex items-baseline gap-1">
-            <span className="text-lg font-bold text-slate-900 dark:text-white md:text-2xl">
-              {mainPrice}
-            </span>
-            {currentCurrency.code === "AFN" && (
-              <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                {afnLabel}
-              </span>
-            )}
-          </div>
+        <div className="mb-2">
+          <h3 className="text-sm font-semibold leading-tight text-slate-900 dark:text-white md:text-base">
+            {item.name}
+          </h3>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            {item.unit}
+          </p>
         </div>
 
         <div className="mt-auto flex items-center gap-1.5 border-t border-slate-100 pt-2 dark:border-slate-700">
