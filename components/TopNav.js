@@ -696,15 +696,7 @@ function TickerStrip({ items }) {
 
   return (
     <div className="ticker-wrapper relative py-2">
-      <div
-        ref={tickerRef}
-        className="ticker-track flex"
-        style={{
-          animation: "ticker 25s linear infinite",
-        }}
-      >
-        {renderTickerContent()}
-        {renderTickerContent()}
+      <div ref={tickerRef} className="ticker-track flex">
         {renderTickerContent()}
         {renderTickerContent()}
       </div>

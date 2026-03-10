@@ -29,12 +29,12 @@ export default function PriceListItem({
   return (
     <article
       onClick={() => onClick?.(item)}
-      className={`group flex min-h-19 cursor-pointer items-center gap-3 rounded-xl bg-white px-3 shadow-sm ring-1 ring-slate-200/80 transition-all duration-200 hover:shadow-md hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600 sm:min-h-16 sm:gap-4 sm:px-4 ${
-        isRtl ? "pl-1 pr-0 sm:pl-4" : "pl-0 pr-2 sm:pr-4"
+      className={`group flex min-h-19 cursor-pointer items-center gap-3 rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80 transition-all duration-200 hover:shadow-md hover:ring-slate-300 dark:bg-slate-800 dark:ring-slate-700/80 dark:hover:ring-slate-600 sm:min-h-20 sm:gap-4 ${
+        isRtl ? "pr-0 pl-2 sm:pl-4" : "pl-0 pr-2 sm:pr-4"
       }`}
     >
       <div
-        className={`relative h-19 w-19 shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700 sm:h-16 sm:w-16 ${
+        className={`relative h-19 w-19 shrink-0 overflow-hidden bg-slate-100 dark:bg-slate-700 sm:h-20 sm:w-20 ${
           isRtl ? "rounded-r-lg" : "rounded-l-lg"
         }`}
       >

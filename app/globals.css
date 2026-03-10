@@ -191,12 +191,21 @@ body {
     transform: translateX(0);
   }
   100% {
-    transform: translateX(-25%);
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes ticker-rtl {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(50%);
   }
 }
 
 .ticker-track {
-  animation: ticker 20s linear infinite;
+  animation: ticker 25s linear infinite;
 }
 
 .ticker-track:hover {
@@ -205,5 +214,9 @@ body {
 
 .ticker-set {
   flex-shrink: 0;
+}
+
+:dir(rtl) .ticker-track {
+  animation-name: ticker-rtl;
 }
 

@@ -1,7 +1,30 @@
 // components/FullScreenLoader.jsx
 "use client";
 
+import { useMemo } from "react";
+
+const LOADING_TEXT = {
+  en: "Loading prices...",
+  fa: "در حال بارگذاری قیمت‌ها...",
+  ps: "د بیو لوډېږي...",
+};
+
+function resolveLocale() {
+  if (typeof window === "undefined") return "fa";
+
+  const saved = localStorage.getItem("qimat_language");
+  if (saved === "en" || saved === "fa" || saved === "ps") return saved;
+
+  const docLang = document.documentElement.lang;
+  if (docLang === "en" || docLang === "fa" || docLang === "ps") return docLang;
+
+  return "fa";
+}
+
 export default function FullScreenLoader() {
+  const locale = useMemo(() => resolveLocale(), []);
+  const loadingLabel = LOADING_TEXT[locale] || LOADING_TEXT.fa;
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
       {/* Spinner */}
@@ -24,7 +47,7 @@ export default function FullScreenLoader() {
         Qimat
       </h1>
       <p className="text-sm text-slate-500 dark:text-slate-400">
-        Loading prices...
+        {loadingLabel}
       </p>
     </div>
   );
