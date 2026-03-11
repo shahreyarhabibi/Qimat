@@ -63,7 +63,7 @@ function AdminLoginContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4 dark:from-slate-900 dark:to-slate-800">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-slate-100 to-slate-200 px-4 dark:from-slate-900 dark:to-slate-800">
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="mb-8 text-center">
