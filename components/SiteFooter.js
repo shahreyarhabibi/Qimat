@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useI18n } from "@/lib/i18n/useI18n";
 
 export default function SiteFooter() {
@@ -11,9 +12,13 @@ export default function SiteFooter() {
       <div className="mx-auto max-w-350 px-6 py-10 lg:px-8">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <p className="text-lg font-semibold text-slate-900 dark:text-white">
-              Qimat
-            </p>
+            <Image
+              src="/qimat-logo.png"
+              alt="Qimat"
+              width={120}
+              height={40}
+              className="h-7 w-auto"
+            />
             <p className="mt-2 max-w-xs text-sm text-slate-600 dark:text-slate-300">
               {t("footer.tagline")}
             </p>

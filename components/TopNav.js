@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import Image from "next/image";
 import {
   MagnifyingGlassIcon,
   BellIcon,
@@ -419,12 +420,14 @@ export default function TopNav({
           <div className="mx-auto flex max-w-[90%] items-center justify-between gap-4 px-4 py-3">
             {/* Logo */}
             <div className="shrink-0">
-              <h1 className="text-xl font-bold tracking-tight text-primary">
-                Qimat
-              </h1>
-              <p className="hidden text-xs text-slate-500 dark:text-slate-400 sm:block">
-                {t("topNav.appTagline")}
-              </p>
+              <Image
+                src="/qimat-logo.png"
+                alt="Qimat"
+                width={120}
+                height={40}
+                className="h-7 w-auto"
+                priority
+              />
             </div>
 
             {/* Search and Actions */}

@@ -4,6 +4,7 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   LockClosedIcon,
   UserIcon,
@@ -66,8 +67,15 @@ function AdminLoginContent() {
       <div className="w-full max-w-md">
         {/* Logo & Title */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/25">
-            <span className="text-2xl font-bold text-white">Q</span>
+          <div className="mx-auto mb-4 animate-pulse flex justify-center items-center">
+            <Image
+              src="/qimat-logo.png"
+              alt="Qimat"
+              width={180}
+              height={60}
+              className="h-12 w-auto"
+              priority
+            />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
             Qimat Admin

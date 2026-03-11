@@ -1,9 +1,21 @@
 // components/FullScreenLoader.jsx
 "use client";
 
+import Image from "next/image";
+
 export default function FullScreenLoader() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <div className="mb-6 animate-pulse">
+        <Image
+          src="/qimat-logo.png"
+          alt="Qimat"
+          width={180}
+          height={60}
+          className="h-12 w-auto"
+          priority
+        />
+      </div>
       {/* Spinner */}
       <div className="relative mb-8">
         {/* Outer glow */}

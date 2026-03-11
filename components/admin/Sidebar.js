@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   HomeIcon,
   CubeIcon,
@@ -77,8 +78,14 @@ export default function AdminSidebar() {
         >
           <Bars3Icon className="h-6 w-6" />
         </button>
-        <div className="flex-1 text-sm font-semibold text-slate-900 dark:text-white">
-          Qimat Admin
+        <div className="flex-1">
+          <Image
+            src="/qimat-logo.png"
+            alt="Qimat"
+            width={120}
+            height={40}
+            className="h-7 w-auto"
+          />
         </div>
       </div>
 
@@ -96,16 +103,18 @@ export default function AdminSidebar() {
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex justify-center h-full flex-col">
           {/* Header */}
           <div className="flex h-16 items-center justify-between border-b border-slate-200 px-6 dark:border-slate-700">
             <Link href="/admin" className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                <span className="text-sm font-bold text-white">Q</span>
-              </div>
-              <span className="text-lg font-bold text-slate-900 dark:text-white">
-                Qimat Admin
-              </span>
+              <Image
+                src="/qimat-logo.png"
+                alt="Qimat"
+                width={120}
+                height={40}
+                className="h-7 w-auto"
+                priority
+              />
             </Link>
             <button className="lg:hidden" onClick={() => setSidebarOpen(false)}>
               <XMarkIcon className="h-6 w-6 text-slate-500" />

@@ -8,11 +8,11 @@ export default function AdminShell({ children }) {
   const isLoginRoute = pathname === "/admin/login";
 
   if (isLoginRoute) {
-    return <>{children}</>;
+    return <div dir="ltr">{children}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-slate-900">
+    <div dir="ltr" className="min-h-screen bg-slate-100 dark:bg-slate-900">
       <AdminSidebar />
       <main className="lg:pl-72">
         <div className="p-4 sm:p-6 lg:p-8">{children}</div>
