@@ -124,9 +124,33 @@ export default function ProductModal({
 
   if (!isOpen || !item) return null;
 
-  const isIncrease = item.change > 0;
-  const isDecrease = item.change < 0;
-  const convertedChange = Math.round(Math.abs(convertPrice(item.change)));
+  const changeLabel = t("priceChange.last7Days");
+  const change7d = useMemo(() => {
+    if (!item?.priceHistory?.length) return item?.change ?? 0;
+    const today = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const todayStr = today.toISOString().split("T")[0];
+    const weekAgoStr = weekAgo.toISOString().split("T")[0];
+    const lastKnown =
+      item.priceHistory[item.priceHistory.length - 1]?.price ?? item.price ?? 0;
+    const todayPrice =
+      item.priceHistory.find((p) => p.date === todayStr)?.price ?? lastKnown;
+    const weekAgoPrice =
+      item.priceHistory.find((p) => p.date === weekAgoStr)?.price ?? todayPrice;
+    return todayPrice - weekAgoPrice;
+  }, [item]);
+
+  const isIncrease = change7d > 0;
+  const isDecrease = change7d < 0;
+  const formatChange = (change) => {
+    const converted = Math.abs(convertPrice(change));
+    const isInteger = Number.isInteger(converted) || converted % 1 === 0;
+    return converted.toLocaleString(undefined, {
+      minimumFractionDigits: isInteger ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   const formatDisplayPrice = (price) => {
     if (currentCurrency.code === "AFN") {
@@ -236,7 +260,7 @@ export default function ProductModal({
                     </p>
                   </div>
 
-                  {/* Today's Change Badge */}
+                  {/* 7-Day Change Badge */}
                   <div
                     className={`flex items-center gap-1.5 rounded-xl px-3 py-2 sm:gap-2 sm:px-4 ${
                       isIncrease
@@ -255,9 +279,9 @@ export default function ProductModal({
                     )}
                     <span className="text-sm font-bold sm:text-base">
                       {isIncrease ? "+" : ""}
-                      {convertedChange.toLocaleString()} {getCurrencyLabel(currentCurrency.code)}
+                      {formatChange(change7d)} {getCurrencyLabel(currentCurrency.code)}
                     </span>
-                    <span className="text-xs opacity-75">{t("productModal.today")}</span>
+                    <span className="text-xs opacity-75">{changeLabel}</span>
                   </div>
                 </div>
 

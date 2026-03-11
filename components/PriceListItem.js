@@ -19,6 +19,7 @@ export default function PriceListItem({
     useCurrency();
   const isIncrease = item.change > 0;
   const isRtl = selectedLanguage === "fa" || selectedLanguage === "ps";
+  const changeLabel = t("priceChange.last7Days");
 
   const formatChange = (change) => {
     const absChange = Math.abs(change);
@@ -85,11 +86,17 @@ export default function PriceListItem({
                   ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400"
                   : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400"
               }`}
+              title={changeLabel}
+              aria-label={changeLabel}
             >
               {isIncrease ? "+" : "-"} {formatChange(item.change)} {afnLabel}
             </span>
           ) : (
-            <span className="mt-1 inline-flex whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-400">
+            <span
+              className="mt-1 inline-flex whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-400"
+              title={changeLabel}
+              aria-label={changeLabel}
+            >
               {t("priceListItem.stable")}
             </span>
           )}

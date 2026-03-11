@@ -13,11 +13,17 @@ export default function PriceCard({
   onToggleFavorite,
 }) {
   const { t } = useI18n();
-  const { formatPrice, currentCurrency, convertPrice, afnLabel, selectedLanguage } =
-    useCurrency();
+  const {
+    formatPrice,
+    currentCurrency,
+    convertPrice,
+    afnLabel,
+    selectedLanguage,
+  } = useCurrency();
   const isIncrease = item.change > 0;
   const isDecrease = item.change < 0;
   const isRtl = selectedLanguage === "fa" || selectedLanguage === "ps";
+  const changeLabel = t("priceChange.last7Days");
 
   const formatChange = (change) => {
     const converted = Math.abs(convertPrice(change));
@@ -76,11 +82,15 @@ export default function PriceCard({
           <HeartSolidIcon className="h-4 w-4" />
         </button>
 
-        <div className={`absolute bottom-2 z-20 ${isRtl ? "right-2" : "left-2"}`}>
+        <div
+          className={`absolute bottom-2 z-20 ${isRtl ? "right-2" : "left-2"}`}
+        >
           <span className="inline-flex items-baseline gap-1 rounded-full bg-black/65 px-2.5 py-1 text-sm font-bold text-white shadow-sm backdrop-blur-sm">
-            <span className="whitespace-nowrap">{mainPrice}</span>
+            <span className="whitespace-nowrap md:text-[16px]">
+              {mainPrice}
+            </span>
             {currentCurrency.code === "AFN" && (
-              <span className="whitespace-nowrap text-[10px] font-medium text-white/80">
+              <span className="whitespace-nowrap text-[12px] font-medium text-white/80">
                 {afnLabel}
               </span>
             )}
@@ -95,6 +105,8 @@ export default function PriceCard({
                   ? "bg-rose-500/90 text-white"
                   : "bg-emerald-500/90 text-white"
               }`}
+              title={changeLabel}
+              aria-label={changeLabel}
             >
               <span className="text-[10px]">{isIncrease ? "+" : "-"}</span>
               {formatChange(item.change)} {currentCurrency.code}
@@ -104,7 +116,11 @@ export default function PriceCard({
 
         {item.change === 0 && (
           <div className="absolute right-2 top-2 z-10">
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm">
+            <span
+              className="inline-flex items-center gap-1 rounded-full bg-slate-500/90 px-2 py-1 text-xs font-bold text-white shadow-sm backdrop-blur-sm"
+              title={changeLabel}
+              aria-label={changeLabel}
+            >
               <span className="text-[10px]">•</span>
               {t("priceCard.stable")}
             </span>
