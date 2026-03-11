@@ -65,13 +65,11 @@ export default function TopNav({
   );
   const [pushClientId] = useState(() => getOrCreatePushClientId());
   const [serviceWorkerReady, setServiceWorkerReady] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof document === "undefined") return false;
+    return document.documentElement.classList.contains("dark");
+  });
   const notifiedIdsRef = useRef(new Set());
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    setIsDarkMode(document.documentElement.classList.contains("dark"));
-  }, []);
 
   const toggleDarkMode = () => {
     const isDark = document.documentElement.classList.contains("dark");
@@ -511,6 +509,15 @@ function CurrencySelector({ toggleDarkMode, isDarkMode, toggleDarkLabel }) {
   const currencyOptions = Object.values(CURRENCIES).filter(
     (c) => c.code === "AFN" || exchangeRates[c.code],
   );
+  const formatRate = (value) => {
+    const numeric = Number(value);
+    if (Number.isNaN(numeric)) return "";
+    const isInteger = Number.isInteger(numeric) || numeric % 1 === 0;
+    return numeric.toLocaleString(undefined, {
+      minimumFractionDigits: isInteger ? 0 : 2,
+      maximumFractionDigits: 2,
+    });
+  };
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -577,7 +584,7 @@ function CurrencySelector({ toggleDarkMode, isDarkMode, toggleDarkLabel }) {
                         1 {currency.code}
                       </p>
                       <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                        {Math.round(rate).toLocaleString()} {afnLabel}
+                        {formatRate(rate)} {afnLabel}
                       </p>
                     </div>
                   )}
