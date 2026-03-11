@@ -29,6 +29,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const { t, locale } = useI18n();
   const { formatPrice, currentCurrency, exchangeRates, afnLabel } =
     useCurrency();
+  const isRtl = locale === "fa" || locale === "ps";
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
   const [quantity, setQuantity] = useState(1);
@@ -226,6 +227,17 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     doc.addFont("Vazir-Regular.ttf", "Vazir", "normal");
   };
 
+  const localizeUnitText = (value) => {
+    if (!isRtl) return value;
+    const text = String(value ?? "");
+    return text
+      .replace(/\bser\b/gi, "سیر")
+      .replace(/\bsack\b/gi, "بوری")
+      .replace(/\bkg\b/gi, "کیلوگرام")
+      .replace(/\boz\b/gi, "اونس")
+      .replace(/\bcan\b/gi, "پیپ");
+  };
+
   const handleDownloadPdf = async () => {
     if (!basket.length) return;
     const [{ jsPDF }, autoTableModule] = await Promise.all([
@@ -234,7 +246,6 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     ]);
     const autoTable = autoTableModule.default;
 
-    const isRtl = locale === "fa" || locale === "ps";
     const localeCode =
       locale === "fa" ? "fa-AF" : locale === "ps" ? "ps-AF" : "en-US";
     const solarDateFormatter = new Intl.DateTimeFormat(
@@ -265,8 +276,9 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
 
     const toPersianDigits = (value) => {
       if (!isRtl) return String(value ?? "");
-      return String(value ?? "").replace(/\d/g, (digit) =>
-        "۰۱۲۳۴۵۶۷۸۹"[Number(digit)],
+      return String(value ?? "").replace(
+        /\d/g,
+        (digit) => "۰۱۲۳۴۵۶۷۸۹"[Number(digit)],
       );
     };
 
@@ -314,14 +326,17 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
           : locale === "ps"
             ? item.namePs || item.name_ps || item.name
             : item.name;
-      const englishUnit =
+      const rawUnit =
         item.calculator?.displayUnit || config.displayUnit || "unit";
-      const quantityLabel = `${formatQuantity(item.quantity, config.step)} ${englishUnit}`;
+      const localizedUnit = localizeUnitText(rawUnit);
+      const quantityLabel = `${formatQuantity(item.quantity, config.step)} ${localizedUnit}`;
       const row = [
         shapeText(toPersianDigits(String(index + 1))),
         shapeText(localizedName),
         shapeText(toPersianDigits(quantityLabel)),
-        shapeText(`${toPersianDigits(formatDisplayPrice(item.totalPrice))} ${currencyLabel}`),
+        shapeText(
+          `${toPersianDigits(formatDisplayPrice(item.totalPrice))} ${currencyLabel}`,
+        ),
         shapeText(rowDate),
       ];
       return isRtl ? row.reverse() : row;
@@ -376,7 +391,9 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
     doc.setFontSize(10);
     doc.setTextColor(124, 45, 18);
     doc.text(
-      shapeText(`${t("calculator.pdfNoteLabel")}: ${t("calculator.pdfDisclaimer")}`),
+      shapeText(
+        `${t("calculator.pdfNoteLabel")}: ${t("calculator.pdfDisclaimer")}`,
+      ),
       titleX,
       currentY,
       { align: textAlign, maxWidth: pageWidth - margin * 2 },
@@ -389,8 +406,8 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
   const getDisplayUnit = (item, config) => {
     const configUnit =
       typeof config?.displayUnit === "string" ? config.displayUnit.trim() : "";
-    if (configUnit) return configUnit;
-    return item?.unit || t("calculator.unit");
+    if (configUnit) return localizeUnitText(configUnit);
+    return localizeUnitText(item?.unit || t("calculator.unit"));
   };
 
   return (
@@ -469,7 +486,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                         {item.name}
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {item.unit} • {item.category}
+                        {localizeUnitText(item.unit)} • {item.category}
                       </p>
                     </div>
                     <div className="text-right">
@@ -501,7 +518,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                     {currentCurrency.code === "AFN"
                       ? ` ${afnLabel}`
                       : ` ${currentCurrency.code}`}{" "}
-                    / {selectedItem.unit}
+                    / {localizeUnitText(selectedItem.unit)}
                   </p>
                 </div>
                 <button
@@ -532,7 +549,7 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
                             : "bg-white text-slate-600 ring-1 ring-slate-200 hover:ring-primary/50 dark:bg-slate-700 dark:text-slate-300 dark:ring-slate-600"
                         }`}
                       >
-                        {preset.label}
+                        {localizeUnitText(preset.label)}
                       </button>
                     ))}
                   </div>
@@ -603,7 +620,8 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
               <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-200/50 pt-4">
                 <div>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {t("calculator.subtotal")} ({formatQuantity(quantity, calcConfig.step)}{" "}
+                    {t("calculator.subtotal")} (
+                    {formatQuantity(quantity, calcConfig.step)}{" "}
                     {getDisplayUnit(selectedItem, calcConfig)})
                   </p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">
@@ -633,7 +651,8 @@ const SpendingCalculator = forwardRef(function SpendingCalculator(
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  {t("calculator.yourList")} ({basket.length} {t("common.items")})
+                  {t("calculator.yourList")} ({basket.length}{" "}
+                  {t("common.items")})
                 </p>
                 <button
                   onClick={handleClearBasket}
