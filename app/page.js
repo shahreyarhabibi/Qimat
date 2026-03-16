@@ -204,19 +204,12 @@ function HomeContent({ items, categories, loading, error }) {
     mobileCalcRef.current?.addItem(item);
   };
 
+  let content = null;
   if (loading) {
-    return (
-      <>
-        <PwaInstallPrompt />
-        <FullScreenLoader />
-      </>
-    );
-  }
-
-  if (error) {
-    return (
+    content = <FullScreenLoader />;
+  } else if (error) {
+    content = (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-        <PwaInstallPrompt />
         <TopNav
           items={[]}
           searchQuery={searchQuery}
@@ -242,228 +235,234 @@ function HomeContent({ items, categories, loading, error }) {
         </main>
       </div>
     );
-  }
+  } else {
+    content = (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <TopNav
+          items={localizedItems}
+          searchQuery={searchQuery}
+          setSearchQuery={handleSearchQueryChange}
+          favoriteIds={favoriteIds}
+        />
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
-      <PwaInstallPrompt />
-      <TopNav
-        items={localizedItems}
-        searchQuery={searchQuery}
-        setSearchQuery={handleSearchQueryChange}
-        favoriteIds={favoriteIds}
-      />
+        <main className="mx-auto max-w-350 px-5 py-8 sm:px-6 lg:px-8">
+          <div className="flex gap-8">
+            <div className="min-w-0 flex-1">
+              <div className="mb-8">
+                <FilterBar
+                  categories={localizedCategories}
+                  selectedCategory={selectedCategory}
+                  setSelectedCategory={handleCategoryChange}
+                />
 
-      <main className="mx-auto max-w-350 px-5 py-8 sm:px-6 lg:px-8">
-        <div className="flex gap-8">
-          <div className="min-w-0 flex-1">
-            <div className="mb-8">
-              <FilterBar
-                categories={localizedCategories}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={handleCategoryChange}
-              />
+                <div className="relative mt-4 md:hidden">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder={t("topNav.searchPlaceholder")}
+                    value={searchQuery}
+                    onChange={(e) => handleSearchQueryChange(e.target.value)}
+                    className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+                  />
+                </div>
+              </div>
 
-              <div className="relative mt-4 md:hidden">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder={t("topNav.searchPlaceholder")}
-                  value={searchQuery}
-                  onChange={(e) => handleSearchQueryChange(e.target.value)}
-                  className="w-full rounded-xl border-0 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/50 dark:bg-slate-800 dark:text-white dark:ring-slate-700"
+              {filteredItems.length > 0 && (
+                <div className="mb-4 flex items-center justify-between">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {t("home.showing")}{" "}
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      {(safeCurrentPage - 1) * itemsPerPage + 1}-
+                      {Math.min(
+                        safeCurrentPage * itemsPerPage,
+                        filteredItems.length,
+                      )}
+                    </span>{" "}
+                    /{" "}
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">
+                      {filteredItems.length}
+                    </span>{" "}
+                    {filteredItems.length === 1
+                      ? t("common.item")
+                      : t("common.items")}
+                  </p>
+                  <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
+                    <button
+                      onClick={() => handleViewModeChange("grid")}
+                      className={`rounded-md p-1.5 transition-colors ${
+                        viewMode === "grid"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                      }`}
+                      title={t("topNav.gridView")}
+                      aria-label={t("topNav.gridView")}
+                    >
+                      <Squares2X2Icon className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleViewModeChange("list")}
+                      className={`rounded-md p-1.5 transition-colors ${
+                        viewMode === "list"
+                          ? "bg-primary text-white"
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                      }`}
+                      title={t("topNav.listView")}
+                      aria-label={t("topNav.listView")}
+                    >
+                      <ListBulletIcon className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {filteredItems.length > 0 ? (
+                viewMode === "grid" ? (
+                  <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+                    {paginatedItems.map((item) => (
+                      <PriceCard
+                        key={item.id}
+                        item={item}
+                        onClick={handleOpenModal}
+                        onAdd={handleAddToSpendingList}
+                        isFavorite={isFavorite(item.id)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paginatedItems.map((item) => (
+                      <PriceListItem
+                        key={item.id}
+                        item={item}
+                        onClick={handleOpenModal}
+                        onAdd={handleAddToSpendingList}
+                        isFavorite={isFavorite(item.id)}
+                        onToggleFavorite={toggleFavorite}
+                      />
+                    ))}
+                  </div>
+                )
+              ) : (
+                <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 text-center shadow-sm ring-1 ring-slate-100 dark:bg-slate-800/50 dark:ring-slate-800">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700">
+                    <MagnifyingGlassIcon className="h-8 w-8 text-slate-400" />
+                  </div>
+                  <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
+                    {t("home.noItemsTitle")}
+                  </p>
+                  <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+                    {t("home.noItemsSubtitle")}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setSelectedCategory(null);
+                      setSearchQuery("");
+                    }}
+                    className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+                  >
+                    {t("home.viewAll")}
+                  </button>
+                </div>
+              )}
+
+              {filteredItems.length > 0 && totalPages > 1 && (
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={safeCurrentPage === 1}
+                    className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                  >
+                    {t("pagination.previous")}
+                  </button>
+
+                  {paginationItems.map((entry, index) => {
+                    if (typeof entry === "string") {
+                      return (
+                        <span
+                          key={`${entry}-${index}`}
+                          className="px-2 text-sm text-slate-400"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isActive = entry === safeCurrentPage;
+                    return (
+                      <button
+                        key={entry}
+                        onClick={() => setCurrentPage(entry)}
+                        className={`h-9 min-w-9 rounded-lg px-2 text-sm font-semibold transition ${
+                          isActive
+                            ? "bg-primary text-white"
+                            : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                        }`}
+                      >
+                        {entry}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                    }
+                    disabled={safeCurrentPage === totalPages}
+                    className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
+                  >
+                    {t("pagination.next")}
+                  </button>
+
+                  <p className="w-full pt-1 text-center text-xs text-slate-500 dark:text-slate-400">
+                    {t("pagination.page")} {safeCurrentPage} {t("pagination.of")}{" "}
+                    {totalPages}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="hidden w-85 shrink-0 lg:block xl:w-95">
+              <div className="sticky top-32">
+                <SpendingCalculator
+                  ref={desktopCalcRef}
+                  items={localizedItems}
+                  isOpen={true}
+                  onClose={() => {}}
                 />
               </div>
             </div>
-
-            {filteredItems.length > 0 && (
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {t("home.showing")}{" "}
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    {(safeCurrentPage - 1) * itemsPerPage + 1}-
-                    {Math.min(
-                      safeCurrentPage * itemsPerPage,
-                      filteredItems.length,
-                    )}
-                  </span>{" "}
-                  /{" "}
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">
-                    {filteredItems.length}
-                  </span>{" "}
-                  {filteredItems.length === 1
-                    ? t("common.item")
-                    : t("common.items")}
-                </p>
-                <div className="inline-flex items-center rounded-lg bg-white p-0.5 shadow-sm ring-1 ring-slate-200 dark:bg-slate-800 dark:ring-slate-700">
-                  <button
-                    onClick={() => handleViewModeChange("grid")}
-                    className={`rounded-md p-1.5 transition-colors ${
-                      viewMode === "grid"
-                        ? "bg-primary text-white"
-                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                    }`}
-                    title={t("topNav.gridView")}
-                    aria-label={t("topNav.gridView")}
-                  >
-                    <Squares2X2Icon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => handleViewModeChange("list")}
-                    className={`rounded-md p-1.5 transition-colors ${
-                      viewMode === "list"
-                        ? "bg-primary text-white"
-                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
-                    }`}
-                    title={t("topNav.listView")}
-                    aria-label={t("topNav.listView")}
-                  >
-                    <ListBulletIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {filteredItems.length > 0 ? (
-              viewMode === "grid" ? (
-                <div className="grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
-                  {paginatedItems.map((item) => (
-                    <PriceCard
-                      key={item.id}
-                      item={item}
-                      onClick={handleOpenModal}
-                      onAdd={handleAddToSpendingList}
-                      isFavorite={isFavorite(item.id)}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {paginatedItems.map((item) => (
-                    <PriceListItem
-                      key={item.id}
-                      item={item}
-                      onClick={handleOpenModal}
-                      onAdd={handleAddToSpendingList}
-                      isFavorite={isFavorite(item.id)}
-                      onToggleFavorite={toggleFavorite}
-                    />
-                  ))}
-                </div>
-              )
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl bg-white py-20 text-center shadow-sm ring-1 ring-slate-100 dark:bg-slate-800/50 dark:ring-slate-800">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-700">
-                  <MagnifyingGlassIcon className="h-8 w-8 text-slate-400" />
-                </div>
-                <p className="mt-4 text-lg font-semibold text-slate-900 dark:text-white">
-                  {t("home.noItemsTitle")}
-                </p>
-                <p className="mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">
-                  {t("home.noItemsSubtitle")}
-                </p>
-                <button
-                  onClick={() => {
-                    setSelectedCategory(null);
-                    setSearchQuery("");
-                  }}
-                  className="mt-6 inline-flex items-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
-                >
-                  {t("home.viewAll")}
-                </button>
-              </div>
-            )}
-
-            {filteredItems.length > 0 && totalPages > 1 && (
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={safeCurrentPage === 1}
-                  className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
-                >
-                  {t("pagination.previous")}
-                </button>
-
-                {paginationItems.map((entry, index) => {
-                  if (typeof entry === "string") {
-                    return (
-                      <span
-                        key={`${entry}-${index}`}
-                        className="px-2 text-sm text-slate-400"
-                      >
-                        ...
-                      </span>
-                    );
-                  }
-
-                  const isActive = entry === safeCurrentPage;
-                  return (
-                    <button
-                      key={entry}
-                      onClick={() => setCurrentPage(entry)}
-                      className={`h-9 min-w-9 rounded-lg px-2 text-sm font-semibold transition ${
-                        isActive
-                          ? "bg-primary text-white"
-                          : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
-                      }`}
-                    >
-                      {entry}
-                    </button>
-                  );
-                })}
-
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
-                  }
-                  disabled={safeCurrentPage === totalPages}
-                  className="rounded-lg bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700 dark:hover:bg-slate-700"
-                >
-                  {t("pagination.next")}
-                </button>
-
-                <p className="w-full pt-1 text-center text-xs text-slate-500 dark:text-slate-400">
-                  {t("pagination.page")} {safeCurrentPage} {t("pagination.of")}{" "}
-                  {totalPages}
-                </p>
-              </div>
-            )}
           </div>
+        </main>
 
-          <div className="hidden w-85 shrink-0 lg:block xl:w-95">
-            <div className="sticky top-32">
-              <SpendingCalculator
-                ref={desktopCalcRef}
-                items={localizedItems}
-                isOpen={true}
-                onClose={() => {}}
-              />
-            </div>
-          </div>
+        <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
+        <div className="lg:hidden">
+          <SpendingCalculator
+            ref={mobileCalcRef}
+            items={localizedItems}
+            isOpen={calculatorOpen}
+            onClose={() => setCalculatorOpen(false)}
+          />
         </div>
-      </main>
 
-      <CalculatorFAB onClick={() => setCalculatorOpen(true)} itemCount={0} />
-      <div className="lg:hidden">
-        <SpendingCalculator
-          ref={mobileCalcRef}
-          items={localizedItems}
-          isOpen={calculatorOpen}
-          onClose={() => setCalculatorOpen(false)}
+        <ProductModal
+          item={selectedItem}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
+          onToggleFavorite={toggleFavorite}
         />
+        <SiteFooter />
       </div>
+    );
+  }
 
-      <ProductModal
-        item={selectedItem}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        isFavorite={selectedItem ? isFavorite(selectedItem.id) : false}
-        onToggleFavorite={toggleFavorite}
-      />
-      <SiteFooter />
-    </div>
+  return (
+    <>
+      <PwaInstallPrompt />
+      {content}
+    </>
   );
 }
