@@ -9,6 +9,26 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata = {
   title: "Qimat - Real-time Prices",
   description: "Track prices of goods, phones, currencies, and fuels.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Qimat",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+};
+
+export const viewport = {
+  themeColor: "#0f172a",
 };
 
 initializeDatabase();

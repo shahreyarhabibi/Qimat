@@ -15,6 +15,7 @@ import SpendingCalculator, {
 } from "@/components/SpendingCalculator";
 import SiteFooter from "@/components/SiteFooter";
 import FullScreenLoader from "@/components/FullScreenLoader";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 import { useI18n } from "@/lib/i18n/useI18n";
 import {
   MagnifyingGlassIcon,
@@ -204,12 +205,18 @@ function HomeContent({ items, categories, loading, error }) {
   };
 
   if (loading) {
-    return <FullScreenLoader />;
+    return (
+      <>
+        <PwaInstallPrompt />
+        <FullScreenLoader />
+      </>
+    );
   }
 
   if (error) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+        <PwaInstallPrompt />
         <TopNav
           items={[]}
           searchQuery={searchQuery}
@@ -239,6 +246,7 @@ function HomeContent({ items, categories, loading, error }) {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <PwaInstallPrompt />
       <TopNav
         items={localizedItems}
         searchQuery={searchQuery}
