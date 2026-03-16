@@ -16,7 +16,7 @@ export default function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       {/* Top accent line */}
-      <div className="h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500" />
+      <div className="h-1 bg-linear-to-r from-emerald-500 via-teal-500 to-cyan-500" />
 
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8">
         <div className="grid gap-10 md:grid-cols-3">

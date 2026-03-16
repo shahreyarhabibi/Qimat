@@ -70,7 +70,7 @@ export default function PwaInstallPrompt() {
   const iosHint = isIos();
 
   return (
-    <div className="fixed inset-x-0 bottom-4 z-[60] mx-auto w-[92%] max-w-lg rounded-2xl border border-slate-200/70 bg-white/95 px-4 py-3 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95">
+    <div className="fixed inset-x-0 bottom-4 z-60 mx-auto w-[92%] max-w-lg rounded-2xl border border-slate-200/70 bg-white/95 px-4 py-3 shadow-xl backdrop-blur dark:border-slate-700/70 dark:bg-slate-900/95">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary">
           <Image
@@ -78,7 +78,7 @@ export default function PwaInstallPrompt() {
             alt={t("pwa.logoAlt")}
             width={32}
             height={32}
-            className="h-5 w-auto brightness-0 invert"
+            className="h-3 w-auto brightness-0 invert"
           />
         </div>
         <div className="flex-1 text-sm">
