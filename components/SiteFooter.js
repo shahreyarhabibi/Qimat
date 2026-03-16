@@ -53,10 +53,6 @@ export default function SiteFooter() {
               <ArrowUpIcon className="h-4 w-4 transition-transform group-hover:-translate-y-1" />
               {t("footer.backToTop")}
             </button>
-
-            <p className="mt-6 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-              {t("footer.madeInAfghanistan")}
-            </p>
           </div>
         </div>
 
