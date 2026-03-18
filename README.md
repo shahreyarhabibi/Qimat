@@ -13,7 +13,7 @@ A multilingual Progressive Web App (PWA) for monitoring daily prices of essentia
 [![Turso](https://img.shields.io/badge/Turso-libSQL-4FF8D2?style=flat-square)](https://turso.tech/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Live Demo](https://qimat.af) · [Report Bug](https://github.com/yourusername/qimat/issues) · [Request Feature](https://github.com/yourusername/qimat/issues)
+[Live Demo](https://qimat.af) · [Report Bug](https://github.com/shahreyarhabibi/qimat/issues) · [Request Feature](https://github.com/shahreyarhabibi/qimat/issues)
 
 </div>
 
