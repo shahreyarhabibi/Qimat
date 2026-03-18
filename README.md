@@ -13,7 +13,7 @@ A multilingual Progressive Web App (PWA) for monitoring daily prices of essentia
 [![Turso](https://img.shields.io/badge/Turso-libSQL-4FF8D2?style=flat-square)](https://turso.tech/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
 
-[Live Demo](https://qimat.af) · [Report Bug](https://github.com/shahreyarhabibi/qimat/issues) · [Request Feature](https://github.com/shahreyarhabibi/qimat/issues)
+[Live Demo](https://qimat.vercel.app) · [Report Bug](https://github.com/shahreyarhabibi/qimat/issues) · [Request Feature](https://github.com/shahreyarhabibi/qimat/issues)
 
 </div>
 
@@ -38,30 +38,30 @@ Prices for essentials and daily-use products can change frequently. Qimat brings
 
 ### For Users
 
-| Feature | Description |
-| --- | --- |
-| Price Tracking | View current prices with daily change indicators |
-| Price History | Interactive 7-30 day trend charts |
-| Search and Filter | Find products by name and category |
-| Favorites | Pin frequently checked products |
-| Multi-Currency | Display prices in AFN, USD, or EUR |
-| Spending Calculator | Quantity presets with PDF export |
-| Notifications | Browser/push alerts for price changes |
-| Dark Mode | Light and dark themes |
-| PWA Support | Install app to home screen |
-| Multilingual UI | Farsi, Pashto, and English |
+| Feature             | Description                                      |
+| ------------------- | ------------------------------------------------ |
+| Price Tracking      | View current prices with daily change indicators |
+| Price History       | Interactive 7-30 day trend charts                |
+| Search and Filter   | Find products by name and category               |
+| Favorites           | Pin frequently checked products                  |
+| Multi-Currency      | Display prices in AFN, USD, or EUR               |
+| Spending Calculator | Quantity presets with PDF export                 |
+| Notifications       | Browser/push alerts for price changes            |
+| Dark Mode           | Light and dark themes                            |
+| PWA Support         | Install app to home screen                       |
+| Multilingual UI     | Farsi, Pashto, and English                       |
 
 ### For Administrators
 
-| Feature | Description |
-| --- | --- |
-| Secure Login | JWT-based admin authentication |
-| Product Management | Create, edit, and manage products |
-| Bulk Price Updates | Update prices for multiple products |
-| Category Management | Organize products by category |
-| Source Management | Manage market/source locations |
-| Ticker Configuration | Control items shown in top ticker |
-| Analytics | View visits, stale products, and activity |
+| Feature              | Description                               |
+| -------------------- | ----------------------------------------- |
+| Secure Login         | JWT-based admin authentication            |
+| Product Management   | Create, edit, and manage products         |
+| Bulk Price Updates   | Update prices for multiple products       |
+| Category Management  | Organize products by category             |
+| Source Management    | Manage market/source locations            |
+| Ticker Configuration | Control items shown in top ticker         |
+| Analytics            | View visits, stale products, and activity |
 
 ---
 
@@ -97,9 +97,9 @@ Prices for essentials and daily-use products can change frequently. Qimat brings
   <i>Project screenshots</i>
 </div>
 
-| Home Page | Product Details | Spending Calculator |
-| :---: | :---: | :---: |
-| ![Home](docs/screenshots/home.png) | ![Details](docs/screenshots/details.png) | ![Calculator](docs/screenshots/calculator.png) |
+|                 Home Page                  |                  Product Details                  |                    Spending Calculator                     |
+| :----------------------------------------: | :-----------------------------------------------: | :--------------------------------------------------------: |
+| ![Home](public/screenshots/main-page.webp) | ![Details](public/screenshots/product-modal.webp) | ![Calculator](public/screenshots/spending-calculator.webp) |
 
 ---
 
