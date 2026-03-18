@@ -8,7 +8,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
   title: "Qimat - Real-time Prices",
-  description: "Track prices of goods, phones, currencies, and fuels.",
+  description:
+    "Track real-time prices of everyday essentials, phones, currencies, and fuels—all in one simple web app.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
